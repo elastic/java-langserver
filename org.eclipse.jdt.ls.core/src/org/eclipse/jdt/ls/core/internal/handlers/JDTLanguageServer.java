@@ -44,6 +44,8 @@ import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jdt.launching.VMStandin;
 import org.eclipse.jdt.ls.core.internal.BuildWorkspaceStatus;
 import org.eclipse.jdt.ls.core.internal.CancellableProgressMonitor;
+import org.eclipse.jdt.ls.core.internal.Full;
+import org.eclipse.jdt.ls.core.internal.FullParams;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.jdt.ls.core.internal.JSONUtility;
 import org.eclipse.jdt.ls.core.internal.JavaClientConnection;
@@ -107,7 +109,6 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonDelegate;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
-
 /**
  * @author Gorkem Ercan
  *
@@ -187,6 +188,9 @@ public class JDTLanguageServer implements LanguageServer, TextDocumentService, W
 		if (preferenceManager.getClientPreferences().isHoverDynamicRegistered()) {
 			registerCapability(Preferences.HOVER_ID, Preferences.HOVER);
 		}
+		//		if (preferenceManager.getClientPreferences().isFullDynamicRegistered()) {
+			registerCapability(Preferences.FULL_ID, Preferences.Full);
+		//		}
 		if (preferenceManager.getClientPreferences().isReferencesDynamicRegistered()) {
 			registerCapability(Preferences.REFERENCES_ID, Preferences.REFERENCES);
 		}
@@ -461,6 +465,13 @@ public class JDTLanguageServer implements LanguageServer, TextDocumentService, W
 		logInfo(">> document/hover");
 		HoverHandler handler = new HoverHandler(this.preferenceManager);
 		return computeAsync((monitor) -> handler.hover(position, monitor));
+	}
+
+	@Override
+	public CompletableFuture<Full> full(FullParams fullParams) {
+		logInfo(">> document/full");
+		FullHandler handler = new FullHandler(this.preferenceManager);
+		return computeAsync((monitor) -> handler.full(fullParams, monitor));
 	}
 
 	/* (non-Javadoc)

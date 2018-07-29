@@ -13,6 +13,8 @@ package org.eclipse.jdt.ls.core.internal.lsp;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.jdt.ls.core.internal.BuildWorkspaceStatus;
+import org.eclipse.jdt.ls.core.internal.Full;
+import org.eclipse.jdt.ls.core.internal.FullParams;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.jsonrpc.services.JsonNotification;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
@@ -39,4 +41,7 @@ public interface JavaProtocolExtensions {
 
 	@JsonRequest
 	CompletableFuture<BuildWorkspaceStatus> buildWorkspace(boolean forceReBuild);
+
+	@JsonRequest(value = "textDocument/full", useSegment = false)
+	CompletableFuture<Full> full(FullParams fullParams);
 }

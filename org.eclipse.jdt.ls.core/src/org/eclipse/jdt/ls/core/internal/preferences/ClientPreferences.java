@@ -119,7 +119,7 @@ public class ClientPreferences {
 	public boolean isDefinitionDynamicRegistered() {
 		return v3supported && isDynamicRegistrationSupported(capabilities.getTextDocument().getDefinition());
 	}
-
+	
 	public boolean isHoverDynamicRegistered() {
 		return v3supported && isDynamicRegistrationSupported(capabilities.getTextDocument().getHover());
 	}

@@ -201,9 +201,11 @@ public class Preferences {
 	public static final String DOCUMENT_SYMBOL = "textDocument/documentSymbol";
 	public static final String CODE_ACTION = "textDocument/codeAction";
 	public static final String DEFINITION = "textDocument/definition";
+	public static final String TYPEDEFINITION = "textDocument/typeDefinition";
 	public static final String HOVER = "textDocument/hover";
 	public static final String REFERENCES = "textDocument/references";
 	public static final String DOCUMENT_HIGHLIGHT = "textDocument/documentHighlight";
+	public static final String Full = "textDocument/full";
 	public static final String WORKSPACE_CHANGE_FOLDERS = "workspace/didChangeWorkspaceFolders";
 
 	public static final String FORMATTING_ID = UUID.randomUUID().toString();
@@ -217,7 +219,9 @@ public class Preferences {
 	public static final String DOCUMENT_SYMBOL_ID = UUID.randomUUID().toString();
 	public static final String CODE_ACTION_ID = UUID.randomUUID().toString();
 	public static final String DEFINITION_ID = UUID.randomUUID().toString();
+	public static final String TYPEDEFINITION_ID = UUID.randomUUID().toString();
 	public static final String HOVER_ID = UUID.randomUUID().toString();
+	public static final String FULL_ID = UUID.randomUUID().toString();
 	public static final String REFERENCES_ID = UUID.randomUUID().toString();
 	public static final String DOCUMENT_HIGHLIGHT_ID = UUID.randomUUID().toString();
 	public static final String WORKSPACE_CHANGE_FOLDERS_ID = UUID.randomUUID().toString();
