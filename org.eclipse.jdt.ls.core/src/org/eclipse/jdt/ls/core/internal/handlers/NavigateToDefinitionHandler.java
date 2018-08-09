@@ -41,6 +41,29 @@ public class NavigateToDefinitionHandler {
 			location = computeDefinitionNavigation(unit, position.getPosition().getLine(),
 					position.getPosition().getCharacter(), monitor);
 		}
+		// TODO(pcxu) decouple these code
+		// if location is null use symbol://qualifedName else use git://...
+		try {
+			if (location == null) {
+				CompilationUnit ast = CoreASTProvider.getInstance().getAST(unit, CoreASTProvider.WAIT_YES, monitor);
+				int offset = JsonRpcHelpers.toOffset(unit.getBuffer(), position.getPosition().getLine(), position.getPosition().getCharacter());
+				if (ast == null || offset < 0) {
+					return null;
+				}
+				NodeFinder finder = new NodeFinder(ast, offset, 0);
+				ASTNode coveringNode = finder.getCoveringNode();
+				if (coveringNode instanceof SimpleName) {
+					IBinding resolvedBinding = ((SimpleName) coveringNode).resolveBinding();
+					if (resolvedBinding instanceof ITypeBinding) {
+						String qualifedName = ((ITypeBinding) resolvedBinding).getQualifiedName();
+						String uri = String.format("symbol://%s", qualifedName);
+						location = new Location(uri, JDTUtils.newRange());
+					}
+				}
+			}
+		} catch (JavaModelException e) {
+			JavaLanguageServerPlugin.logException("Problem computing definition for" + unit.getElementName(), e);
+		}
 		return location == null ? null : Arrays.asList(location);
 	}
 
