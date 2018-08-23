@@ -4,3 +4,4 @@ target/
 bin/
 **/lib/
 maven-wrapper.jar
+**/.settings
