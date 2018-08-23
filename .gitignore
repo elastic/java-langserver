@@ -1,0 +1,7 @@
+**/node_modules/
+.DS_Store
+target/
+bin/
+**/lib/
+maven-wrapper.jar
+**/.settings
