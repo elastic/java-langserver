@@ -14,15 +14,18 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.ls.core.internal.CancellableProgressMonitor;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentLifeCycleHandler;
+import org.eclipse.jdt.ls.core.internal.handlers.HoverHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer;
 import org.eclipse.jdt.ls.core.internal.handlers.NavigateToDefinitionHandler;
 import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
+import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.CompletableFutures;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
+
 
 public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 	
@@ -31,6 +34,13 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 	public ExtendedJDTLanguageServer(ProjectsManager projects, PreferenceManager preferenceManager) {
 		super(projects, preferenceManager);
 		this.preferenceManager = preferenceManager;
+	}
+	
+	@Override
+	public CompletableFuture<Hover> hover(TextDocumentPositionParams position) {
+		logInfo(">> document/hover");
+		ExtendedHoverHandler handler = new ExtendedHoverHandler(this.preferenceManager);
+		return computeAsync((monitor) -> handler.extendedHover(position, monitor));
 	}
 	
 	@Override
