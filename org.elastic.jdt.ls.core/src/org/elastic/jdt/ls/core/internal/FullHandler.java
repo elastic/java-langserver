@@ -18,18 +18,17 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.internal.corext.dom.IASTSharedValues;
-import org.eclipse.jdt.ls.core.internal.HoverInfoProvider;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentSymbolHandler;
 import org.eclipse.lsp4j.DocumentSymbolParams;
+import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Location;
-import org.eclipse.lsp4j.MarkedString;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.eclipse.lsp4j.TextDocumentPositionParams;
 import org.elastic.jdt.ls.core.internal.hover.JavaElementLabels;
 
 import com.google.common.base.Charsets;
@@ -45,11 +44,12 @@ public class FullHandler extends DocumentSymbolHandler {
 
 	public Full full(FullParams fullParams, IProgressMonitor monitor) {
 		TextDocumentIdentifier textDocument = fullParams.getTextDocumentIdentifier();
-		ITypeRoot unit = JDTUtils.resolveTypeRoot(textDocument.getUri());
+		String uri = textDocument.getUri();
+		ITypeRoot unit = JDTUtils.resolveTypeRoot(uri);
 		List<? extends SymbolInformation> symbols = this.documentSymbol(new DocumentSymbolParams(textDocument), monitor);
 		List<DetailSymbolInformation> detailInfos = new ArrayList<>();
 		for (SymbolInformation symbol : symbols) {
-			DetailSymbolInformation detailInfo = createDetailSymbol(unit, symbol, monitor);
+			DetailSymbolInformation detailInfo = createDetailSymbol(symbol, textDocument, monitor);
 			detailInfos.add(detailInfo);
 		}
 		List<Reference> allReferences = getAllReferences(monitor, textDocument);
@@ -124,12 +124,13 @@ public class FullHandler extends DocumentSymbolHandler {
 		return allReferences;
 	}
 
-	private DetailSymbolInformation createDetailSymbol(ITypeRoot unit, SymbolInformation symbol, IProgressMonitor monitor) {
+	private DetailSymbolInformation createDetailSymbol(SymbolInformation symbol, TextDocumentIdentifier textDocument, IProgressMonitor monitor) {
+		ExtendedHoverHandler hoverHandler = new ExtendedHoverHandler(this.preferenceManager);
 		int line = symbol.getLocation().getRange().getStart().getLine();
 		int column = symbol.getLocation().getRange().getStart().getCharacter();
-		HoverInfoProvider provider = new HoverInfoProvider(unit, this.preferenceManager);
-		List<Either<String, MarkedString>> contents = provider.computeHover(line, column, monitor);
-		DetailSymbolInformation detailSymbolInfo = new DetailSymbolInformation(symbol, contents);
+		TextDocumentPositionParams position = new TextDocumentPositionParams(textDocument, new Position(line, column));
+		Hover hover = hoverHandler.extendedHover(position, monitor);
+		DetailSymbolInformation detailSymbolInfo = new DetailSymbolInformation(symbol, hover.getContents().getLeft(), hover.getRange());
 		return detailSymbolInfo;
 	}
 
