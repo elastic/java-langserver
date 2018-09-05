@@ -1,0 +1,5 @@
+include 'org.elastic.jdt.ls.core'
+include 'org.elastic.jdt.ls.product'
+include 'target.p2'
+include 'target.maven'
+include 'deploy'

@@ -1,0 +1,145 @@
+
+buildscript {
+    repositories {
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+        maven { url 'http://download.eclipse.org/jdtls/snapshots/repository/latest/' }
+        maven { url 'https://plugins.gradle.org/m2/' }
+    }
+    configurations.all {
+		resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+	}
+	dependencies {
+		// a bunch of eclipse stuff
+		classpath "com.diffplug.gradle:goomph:${VER_GOOMPH}"
+		// creates a targetplatform
+		classpath "org.standardout:bnd-platform:${VER_BND_PLATFORM}"
+		// apply spotless
+		classpath "com.diffplug.spotless:spotless-plugin-gradle:${VER_SPOTLESS}"
+	}
+}
+
+repositories {
+    mavenCentral()
+}
+
+subprojects {
+    repositories {
+        mavenCentral()
+        if (project.version.endsWith('SNAPSHOT')) {
+            maven {
+                url 'https://oss.sonatype.org/content/repositories/snapshots'
+            }
+            maven {
+                url rootProject.file('target.p2/build/p2asmaven/maven')
+            }
+        }
+
+    }
+}
+
+Closure IS_PLUGIN = { it.name.startsWith('org.elastic.jdt.ls') }
+configure(subprojects.findAll(IS_PLUGIN)) {
+	// we need the maven repo from p2
+	evaluationDependsOn(':target.p2')
+
+	def PROJECT_NAME = it.name
+
+	//////////
+	// JAVA //
+	//////////
+	apply plugin: 'java'
+	sourceSets {
+		main { java {
+			srcDir 'src'
+		} }
+		test { java {
+			srcDir 'test'
+		} }
+	}
+	sourceCompatibility = VER_JAVA
+	targetCompatibility = VER_JAVA
+
+	// add SWT and the appropriate platform-native SWT for building and testing
+	// dependencies {
+	// 	compile "eclipse-deps:org.eclipse.swt:+"
+	// 	compile "eclipse-deps:org.eclipse.swt.${com.diffplug.common.swt.os.SwtPlatform.getNative()}:+"
+	// }
+
+	//////////
+	// OSGI //
+	//////////
+	// create the manifest
+	apply plugin: 'com.diffplug.gradle.osgi.bndmanifest'
+	osgiBndManifest {
+		copyTo 'META-INF/MANIFEST.MF'
+	}
+	// configure the OSGi bundle
+	jar.manifest.attributes(
+		'-exportcontents': 'com.diffplug.*',
+		'-removeheaders': 'Bnd-LastModified,Bundle-Name,Created-By,Tool,Private-Package,Require-Capability',
+		'Import-Package': '!javax.annotation.*,*',
+		'Bundle-SymbolicName': project.name,
+		'Bundle-RequiredExecutionEnvironment': 'JavaSE-1.8',
+		'Require-Capability': 'osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))"',
+		'Bundle-Vendor': 'DiffPlug',
+		'Bundle-License': "http://www.apache.org/licenses/LICENSE-2.0"
+	)
+
+	//////////////////////
+	// ECLIPSE PROJECTS //
+	//////////////////////
+	apply plugin: 'eclipse'
+	// remove the build folder
+	apply plugin: 'com.diffplug.gradle.eclipse.excludebuildfolder'
+	// improve the project deps
+	apply plugin: 'com.diffplug.gradle.eclipse.projectdeps'
+	// handle build.properties correctly
+	apply plugin: 'com.diffplug.gradle.eclipse.buildproperties'
+
+	eclipse {
+		project {
+			natures 'org.eclipse.pde.PluginNature'
+			natures 'org.eclipse.jdt.core.javanature'
+
+			buildCommand 'org.eclipse.jdt.core.javabuilder'
+			buildCommand 'org.eclipse.pde.ManifestBuilder'
+			buildCommand 'org.eclipse.pde.SchemaBuilder'
+		}
+		classpath {
+			downloadSources true
+			downloadJavadoc true
+		}
+		jdt {
+			sourceCompatibility VER_JAVA
+			targetCompatibility VER_JAVA
+		}
+	}
+	// always create "fresh" projects
+	tasks.eclipse.dependsOn(cleanEclipse)
+}
+
+// formatting
+// allprojects {
+// 	apply from: rootProject.file('gradle/spotless/spotless.gradle')
+// }
+
+/////////////////////////////////////////////////////////
+// Root eclipse project for tinkering with build files //
+/////////////////////////////////////////////////////////
+apply plugin: 'com.diffplug.gradle.eclipse.resourcefilters'
+eclipseResourceFilters {
+	exclude().folders().name('org.elatic.*')
+}
+
+
+/////////////////////////////
+// Setup a headless launch //
+/////////////////////////////
+apply plugin: 'com.diffplug.gradle.equinoxlaunch'
+equinoxLaunch {
+	codegenSetup {
+		source.addProject(project(':org.elastic.jdt.ls.product'))
+		source.addMaven('com.google.guava:guava:17.0')
+		source.addMaven('com.google.guava:guava:18.0')
+	}
+}
