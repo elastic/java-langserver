@@ -25,4 +25,12 @@
          </property>
       </product>
    </extension>
+   <extension
+         id="importers"
+         point="org.eclipse.jdt.ls.core.importers">
+         <importer
+         	id = "antProjectImporter"
+         	order = "500"
+         	class = "org.elastic.jdt.ls.core.internal.AntProjectImporter"/>
+   </extension>
 </plugin>
