@@ -13,6 +13,9 @@ import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
 public class DetailSymbolInformation {
 	@NonNull
 	private SymbolInformation symbolInformation;
+	
+	@NonNull
+	private String qname;
 
 	// optional
 	private Either<List<Either<String, MarkedString>>, MarkupContent> contents;
@@ -20,33 +23,47 @@ public class DetailSymbolInformation {
 	// optional 
 	private Range range;
 
-	public DetailSymbolInformation(@NonNull final SymbolInformation symbolInformation) {
+	public DetailSymbolInformation(@NonNull final SymbolInformation symbolInformation, @NonNull final String qname) {
 		this.setSymbolInformation(symbolInformation);
+		this.setQname(qname);
 	}
 
-	public DetailSymbolInformation(@NonNull final SymbolInformation symbolInformation, final MarkupContent contents) {
+	public DetailSymbolInformation(@NonNull final SymbolInformation symbolInformation, @NonNull final String qname, final MarkupContent contents) {
 		this.setContents(contents);
 		this.setSymbolInformation(symbolInformation);
+		this.setQname(qname);
 	}
 
-	public DetailSymbolInformation(@NonNull final SymbolInformation symbolInformation, final List<Either<String, MarkedString>> contents) {
+	public DetailSymbolInformation(@NonNull final SymbolInformation symbolInformation, @NonNull final String qname, final List<Either<String, MarkedString>> contents) {
 		this.setContents(contents);
 		this.setSymbolInformation(symbolInformation);
+		this.setQname(qname);
 	}
 	
-	public DetailSymbolInformation(@NonNull final SymbolInformation symbolInformation, final List<Either<String, MarkedString>> contents, final Range range) {
+	public DetailSymbolInformation(@NonNull final SymbolInformation symbolInformation, @NonNull final String qname, final List<Either<String, MarkedString>> contents, final Range range) {
 		this.setContents(contents);
 		this.setSymbolInformation(symbolInformation);
 		this.setRange(range);
+		this.setQname(qname);
 	}
 
 	public void setSymbolInformation(@NonNull final SymbolInformation symbolInformation) {
 		this.symbolInformation = symbolInformation;
 	}
+	
 
 	@NonNull
 	public SymbolInformation getSymbolInformation() {
 		return this.symbolInformation;
+	}
+	
+	public void setQname(@NonNull final String qname) {
+		this.qname = qname;
+	}
+
+	@NonNull 
+	public String getQname() {
+		return this.qname;
 	}
 
 	public void setContents(final MarkupContent contents) {

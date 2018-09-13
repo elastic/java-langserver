@@ -12,16 +12,24 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.IBinding;
+import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.IVariableBinding;
+import org.eclipse.jdt.core.dom.NodeFinder;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
+import org.eclipse.jdt.core.manipulation.CoreASTProvider;
 import org.eclipse.jdt.internal.corext.dom.IASTSharedValues;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentSymbolHandler;
+import org.eclipse.jdt.ls.core.internal.handlers.JsonRpcHelpers;
 import org.eclipse.lsp4j.DocumentSymbolParams;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Location;
@@ -49,7 +57,7 @@ public class FullHandler extends DocumentSymbolHandler {
 		List<? extends SymbolInformation> symbols = this.documentSymbol(new DocumentSymbolParams(textDocument), monitor);
 		List<DetailSymbolInformation> detailInfos = new ArrayList<>();
 		for (SymbolInformation symbol : symbols) {
-			DetailSymbolInformation detailInfo = createDetailSymbol(symbol, textDocument, monitor);
+			DetailSymbolInformation detailInfo = createDetailSymbol(unit, symbol, textDocument, monitor);
 			detailInfos.add(detailInfo);
 		}
 		List<Reference> allReferences = getAllReferences(monitor, textDocument);
@@ -124,14 +132,51 @@ public class FullHandler extends DocumentSymbolHandler {
 		return allReferences;
 	}
 
-	private DetailSymbolInformation createDetailSymbol(SymbolInformation symbol, TextDocumentIdentifier textDocument, IProgressMonitor monitor) {
+	private DetailSymbolInformation createDetailSymbol(ITypeRoot unit, SymbolInformation symbol, TextDocumentIdentifier textDocument, IProgressMonitor monitor) {
 		ExtendedHoverHandler hoverHandler = new ExtendedHoverHandler(this.preferenceManager);
 		int line = symbol.getLocation().getRange().getStart().getLine();
 		int column = symbol.getLocation().getRange().getStart().getCharacter();
 		TextDocumentPositionParams position = new TextDocumentPositionParams(textDocument, new Position(line, column));
 		Hover hover = hoverHandler.extendedHover(position, monitor);
-		DetailSymbolInformation detailSymbolInfo = new DetailSymbolInformation(symbol, hover.getContents().getLeft(), hover.getRange());
+		String qname = getQname(unit, line, column, monitor);
+		DetailSymbolInformation detailSymbolInfo = new DetailSymbolInformation(symbol, qname, hover.getContents().getLeft(), hover.getRange());
 		return detailSymbolInfo;
+	}
+	
+	// TODO optimize the algorithm refer the following code
+	// @see org.eclipse.jdt.ls.core.internal.hover.JavaElementLabelComposer#appendElementLabel
+	private String getQname(ITypeRoot unit, int line, int column, IProgressMonitor monitor) {
+		CompilationUnit ast = CoreASTProvider.getInstance().getAST(unit, CoreASTProvider.WAIT_YES, monitor);
+		int offset;
+		try {
+			offset = JsonRpcHelpers.toOffset(unit.getBuffer(), line, column);
+			if (ast == null || offset < 0) {
+				return null;
+			}
+			NodeFinder finder = new NodeFinder(ast, offset, 0);
+			ASTNode coveringNode = finder.getCoveringNode();
+			if (coveringNode instanceof SimpleName) {
+				ITypeBinding type = null;
+				IBinding resolvedBinding = ((SimpleName) coveringNode).resolveBinding();
+				if (resolvedBinding instanceof IVariableBinding) {
+					type = ((IVariableBinding)resolvedBinding).getDeclaringClass();
+				} else if (resolvedBinding instanceof IMethodBinding) {
+					type = ((IMethodBinding)resolvedBinding).getDeclaringClass();
+				}
+				if (type != null) {
+					String typeName = type.getQualifiedName();
+					if (!typeName.isEmpty()) {
+						String fieldName = resolvedBinding.getName();
+						return new String(typeName + "." + fieldName);
+					}
+				}
+			}
+			
+		} catch (JavaModelException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 }

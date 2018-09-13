@@ -9,7 +9,9 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.IBinding;
+import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.NodeFinder;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.manipulation.CoreASTProvider;
@@ -41,13 +43,23 @@ public class ExtendedNavigateToDefinitionHandler extends NavigateToDefinitionHan
 				NodeFinder finder = new NodeFinder(ast, offset, 0);
 				ASTNode coveringNode = finder.getCoveringNode();
 				if (coveringNode instanceof SimpleName) {
+					String qualifedName = "";
 					IBinding resolvedBinding = ((SimpleName) coveringNode).resolveBinding();
 					if (resolvedBinding instanceof ITypeBinding) {
-						String qualifedName = ((ITypeBinding) resolvedBinding).getQualifiedName();
-						String uri = String.format("symbol://%s", qualifedName);
-						location = new Location(uri, JDTUtils.newRange());
+						qualifedName = ((ITypeBinding) resolvedBinding).getQualifiedName();
+					} else {
+						String typeName = "";
+						if (resolvedBinding instanceof IMethodBinding) {
+							typeName = ((IMethodBinding)resolvedBinding).getDeclaringClass().getQualifiedName();
+						} else if (resolvedBinding instanceof IVariableBinding) {
+							typeName = ((IVariableBinding)resolvedBinding).getDeclaringClass().getQualifiedName();
+						}
+						String fieldName = resolvedBinding.getName();
+						qualifedName = new String(typeName + "." + fieldName);
 					}
-				}
+					String uri = String.format("symbol://%s", qualifedName);
+					location = new Location(uri, JDTUtils.newRange());
+				} 
 			}
 			else {
 				return locations;
