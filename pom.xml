@@ -226,7 +226,7 @@
         <repository>
       <id>jdt.ls</id>
       <layout>p2</layout>
-      <url>http://download.eclipse.org/jdtls/snapshots/repository/latest/</url>
+      <url>http://download.eclipse.org/jdtls/snapshots/repository/0.24.0.201808312240/</url>
     </repository>
 	</repositories>
 	<profiles>
