@@ -142,7 +142,7 @@ public class FullHandler extends DocumentSymbolHandler {
 		DetailSymbolInformation detailSymbolInfo = new DetailSymbolInformation(symbol, qname, hover.getContents().getLeft(), hover.getRange());
 		return detailSymbolInfo;
 	}
-	
+
 	// TODO optimize the algorithm refer the following code
 	// @see org.eclipse.jdt.ls.core.internal.hover.JavaElementLabelComposer#appendElementLabel
 	private String getQname(ITypeRoot unit, int line, int column, IProgressMonitor monitor) {
@@ -158,7 +158,9 @@ public class FullHandler extends DocumentSymbolHandler {
 			if (coveringNode instanceof SimpleName) {
 				ITypeBinding type = null;
 				IBinding resolvedBinding = ((SimpleName) coveringNode).resolveBinding();
-				if (resolvedBinding instanceof IVariableBinding) {
+				if (resolvedBinding instanceof ITypeBinding) {
+					return ((ITypeBinding)resolvedBinding).getQualifiedName();
+				} else if (resolvedBinding instanceof IVariableBinding) {
 					type = ((IVariableBinding)resolvedBinding).getDeclaringClass();
 				} else if (resolvedBinding instanceof IMethodBinding) {
 					type = ((IMethodBinding)resolvedBinding).getDeclaringClass();
@@ -171,7 +173,7 @@ public class FullHandler extends DocumentSymbolHandler {
 					}
 				}
 			}
-			
+
 		} catch (JavaModelException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
