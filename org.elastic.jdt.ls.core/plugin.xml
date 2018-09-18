@@ -25,4 +25,12 @@
          </property>
       </product>
    </extension>
+   <extension
+         id="importers"
+         point="org.eclipse.jdt.ls.core.importers">
+         <importer
+         	id = "eclipseProjectImporter"
+         	order = "100"
+         	class = "org.eclipse.jdt.ls.core.internal.managers.EclipseProjectImporter"/>
+   </extension>
 </plugin>
