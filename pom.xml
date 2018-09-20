@@ -15,8 +15,6 @@
 		<tycho.scmUrl>scm:git:https://github.com/elastic/elastic.jdt.ls.git</tycho.scmUrl>
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 		<coverage.filter>org.elastic.jdt.ls.*</coverage.filter>
-		<jacoco.destFile>${project.build.directory}/jacoco.exec</jacoco.destFile>
-		<sonar.jacoco.reportPath>${jacoco.destFile}</sonar.jacoco.reportPath>
 		<!-- To handle OSX-specific settings -->
 		<os.testArgs></os.testArgs>
 		<!-- skip for local builds, set it to true on elastic.org infrastructure -->
@@ -238,9 +236,6 @@
 					<exists>META-INF/MANIFEST.MF</exists>
 				</file>
 			</activation>
-			<properties>
-				<jacoco.destFile>${project.basedir}/../target/jacoco.exec</jacoco.destFile>
-			</properties>
 			<build>
 				<plugins>
 					<plugin>
@@ -253,26 +248,6 @@
 								<goals>
 									<goal>plugin-source</goal>
 								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.jacoco</groupId>
-						<artifactId>jacoco-maven-plugin</artifactId>
-						<version>0.7.9</version>
-						<executions>
-							<execution>
-								<goals>
-									<goal>prepare-agent</goal>
-								</goals>
-								<configuration>
-									<sessionId>${project.artifactId}</sessionId>
-									<includes>
-										<include>${coverage.filter}</include>
-									</includes>
-									<!-- Merge reports from all executions -->
-									<append>true</append>
-								</configuration>
 							</execution>
 						</executions>
 					</plugin>
