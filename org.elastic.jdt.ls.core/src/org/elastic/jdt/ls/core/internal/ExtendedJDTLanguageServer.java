@@ -28,21 +28,21 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 
 
 public class ExtendedJDTLanguageServer extends JDTLanguageServer {
-	
+
 	private PreferenceManager preferenceManager;
-	
+
 	public ExtendedJDTLanguageServer(ProjectsManager projects, PreferenceManager preferenceManager) {
 		super(projects, preferenceManager);
 		this.preferenceManager = preferenceManager;
 	}
-	
+
 	@Override
 	public CompletableFuture<Hover> hover(TextDocumentPositionParams position) {
 		logInfo(">> document/hover");
 		ExtendedHoverHandler handler = new ExtendedHoverHandler(this.preferenceManager);
 		return computeAsync((monitor) -> handler.extendedHover(position, monitor));
 	}
-	
+
 	@Override
 	public CompletableFuture<List<? extends Location>> definition(TextDocumentPositionParams position) {
 		logInfo(">> document/definition");
@@ -52,7 +52,7 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 			return handler.extendedDefinition(position, monitor);
 		});
 	}
-	
+
 	@JsonRequest(value = "textDocument/full", useSegment = false)
 	public CompletableFuture<Full> full(FullParams fullParams) {
 		logInfo(">> document/full");
@@ -60,15 +60,22 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 		handler = new FullHandler(this.preferenceManager);
 		return computeAsync((monitor) -> handler.full(fullParams, monitor));
 	}
-	
+
+	@JsonRequest(value = "textDocument/edefintion", useSegment = false)
+	public CompletableFuture<SymbolLocator> eDefintion(TextDocumentPositionParams position) {
+		logInfo(">> document/edefinition");
+		EDefinitionHandler handler = new EDefinitionHandler(this.preferenceManager);
+		return computeAsync((monitor) -> handler.eDefinition(position, monitor));
+	}
+
 	private <R> CompletableFuture<R> computeAsync(Function<IProgressMonitor, R> code) {
 		return CompletableFutures.computeAsync(cc -> code.apply(toMonitor(cc)));
 	}
-	
+
 	private IProgressMonitor toMonitor(CancelChecker checker) {
 		return new CancellableProgressMonitor(checker);
 	}
-	
+
 	private void waitForLifecycleJobs(IProgressMonitor monitor) {
 		try {
 			Job.getJobManager().join(DocumentLifeCycleHandler.DOCUMENT_LIFE_CYCLE_JOBS, monitor);
