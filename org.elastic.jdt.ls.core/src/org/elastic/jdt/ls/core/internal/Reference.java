@@ -13,10 +13,18 @@ public class Reference {
 	@NonNull
 	private SymbolInformation referencedSymbol;
 
+	private SymbolLocator target;
+
 	public Reference(@NonNull final ReferenceCategory category, @NonNull final Location location, @NonNull final SymbolInformation referencedSymbol) {
 		this.setCategory(category);
 		this.setLocation(location);
 		this.setReferenceSymbol(referencedSymbol);
+	}
+
+	public Reference(@NonNull final ReferenceCategory category, @NonNull final Location location, SymbolLocator target) {
+		this.setCategory(category);
+		this.setLocation(location);
+		this.setTarget(target);
 	}
 
 	public void setCategory(@NonNull final ReferenceCategory category) {
@@ -44,5 +52,13 @@ public class Reference {
 	@NonNull
 	public SymbolInformation getReferencedSymbol() {
 		return this.referencedSymbol;
+	}
+
+	public void setTarget(SymbolLocator target) {
+		this.target = target;
+	}
+
+	public SymbolLocator getTarget() {
+		return this.target;
 	}
 }
