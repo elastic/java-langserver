@@ -118,7 +118,7 @@ public class FullHandler extends DocumentSymbolHandler {
 								reference = new Reference(ReferenceCategory.UNCATEGORIZED, rawLocation, new SymbolLocator(location));
 							} else {
 								String qname = JavaElementLabels.getTextLabel(element, JavaElementLabels.ALL_FULLY_QUALIFIED);
-								reference = new Reference(ReferenceCategory.UNCATEGORIZED, rawLocation, new SymbolLocator(qname, mapKind(element)));
+								reference = new Reference(ReferenceCategory.UNCATEGORIZED, rawLocation, new SymbolLocator(QnameHelper.getSimplifiedQname(qname), mapKind(element)));
 							}
 							// check if the reference already existed
 							if (!allReferences.contains(reference)) {
@@ -140,7 +140,7 @@ public class FullHandler extends DocumentSymbolHandler {
 
 	private DetailSymbolInformation createDetailSymbol(SymbolInformation symbol, IJavaElement element, Hover hover, IProgressMonitor monitor) {
 		String qname = JavaElementLabels.getTextLabel(element, JavaElementLabels.ALL_FULLY_QUALIFIED);
-		DetailSymbolInformation detailSymbolInfo = new DetailSymbolInformation(symbol, qname, hover.getContents().getLeft(), hover.getRange());
+		DetailSymbolInformation detailSymbolInfo = new DetailSymbolInformation(symbol, QnameHelper.getSimplifiedQname(qname), hover.getContents().getLeft(), hover.getRange());
 		return detailSymbolInfo;
 	}
 
