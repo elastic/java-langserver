@@ -11,11 +11,10 @@ import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentSymbolHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.NavigateToDefinitionHandler;
-import org.eclipse.jdt.ls.core.internal.hover.JavaElementLabelComposer;
-import org.eclipse.jdt.ls.core.internal.hover.JavaElementLabels;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
+import org.elastic.jdt.ls.core.internal.hover.JavaElementLabels;
 
 @SuppressWarnings("restriction")
 public class EDefinitionHandler extends NavigateToDefinitionHandler {
@@ -38,7 +37,8 @@ public class EDefinitionHandler extends NavigateToDefinitionHandler {
 			if (element == null) {
 				return null;
 			}
-			return new SymbolLocator(JavaElementLabels.getTextLabel(element, JavaElementLabels.ALL_FULLY_QUALIFIED), DocumentSymbolHandler.mapKind(element));
+			String qname = JavaElementLabels.getTextLabel(element, JavaElementLabels.ALL_FULLY_QUALIFIED);
+			return new SymbolLocator(QnameHelper.getSimplifiedQname(qname), DocumentSymbolHandler.mapKind(element));
 		} catch (JavaModelException e) {
 			JavaLanguageServerPlugin.logException("Problem computing edefinition for" +  unit.getElementName(), e);
 		}
