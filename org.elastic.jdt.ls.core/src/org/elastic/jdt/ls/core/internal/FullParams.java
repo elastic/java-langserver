@@ -7,6 +7,8 @@ import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
 public class FullParams {
 	@NonNull
 	private TextDocumentIdentifier textDocument;
+	
+	private boolean reference;
 
 	public FullParams(TextDocumentIdentifier textDocument) {
 		this.setTextDocumentIdentifier(textDocument);
@@ -18,6 +20,14 @@ public class FullParams {
 
 	public TextDocumentIdentifier getTextDocumentIdentifier() {
 		return this.textDocument;
+	}
+
+	public boolean isReference() {
+		return reference;
+	}
+
+	public void setReference(boolean reference) {
+		this.reference = reference;
 	}
 
 }

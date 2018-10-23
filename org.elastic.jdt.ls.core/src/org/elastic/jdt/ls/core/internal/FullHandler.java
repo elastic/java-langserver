@@ -70,7 +70,10 @@ public class FullHandler extends DocumentSymbolHandler {
 				e.printStackTrace();
 			}
 		}
-		List<Reference> allReferences = getAllReferences(monitor, textDocument);
+		List<Reference> allReferences = java.util.Collections.emptyList();
+		if (fullParams.isReference()) {
+			allReferences = getAllReferences(monitor, textDocument);
+		}
 
 		return new Full(detailInfos, allReferences);
 	}
