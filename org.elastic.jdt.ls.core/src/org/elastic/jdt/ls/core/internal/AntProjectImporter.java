@@ -6,7 +6,6 @@ import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jdt.ls.core.internal.AbstractProjectImporter;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.managers.BasicFileDetector;
@@ -15,12 +14,7 @@ import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-
-import org.eclipse.ant.core.AntCorePlugin;
-import org.eclipse.ant.core.AntRunner;
 
 import org.eclipse.ant.internal.ui.datatransfer.*;
 import org.eclipse.ant.internal.ui.model.AntProjectNode;

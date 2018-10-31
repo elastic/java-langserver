@@ -1,7 +1,6 @@
 package org.elastic.jdt.ls.core.internal;
 
 import org.eclipse.lsp4j.Hover;
-import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
 
 import com.google.common.base.Charsets;
@@ -27,11 +26,8 @@ import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 
 public class ExtendedHoverHandler extends HoverHandler {
 	
-	private final PreferenceManager preferenceManager;
-	
 	public ExtendedHoverHandler(PreferenceManager preferenceManager) {
 		super(preferenceManager);
-		this.preferenceManager = preferenceManager;
 	}
 	
 	public Hover extendedHover(TextDocumentPositionParams position, IProgressMonitor monitor) {

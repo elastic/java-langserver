@@ -6,17 +6,13 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.reflect.FieldUtils;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.ls.core.internal.CancellableProgressMonitor;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentLifeCycleHandler;
-import org.eclipse.jdt.ls.core.internal.handlers.HoverHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer;
-import org.eclipse.jdt.ls.core.internal.handlers.NavigateToDefinitionHandler;
 import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 import org.eclipse.lsp4j.Hover;
@@ -71,7 +67,6 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 	private <R> CompletableFuture<R> computeAsync(Function<IProgressMonitor, R> code) {
 		return CompletableFutures.computeAsync(cc -> code.apply(toMonitor(cc)));
 	}
-
 	private IProgressMonitor toMonitor(CancelChecker checker) {
 		return new CancellableProgressMonitor(checker);
 	}

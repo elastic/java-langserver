@@ -43,10 +43,10 @@ public class ExtendedNavigateToDefinitionHandler extends NavigateToDefinitionHan
 				NodeFinder finder = new NodeFinder(ast, offset, 0);
 				ASTNode coveringNode = finder.getCoveringNode();
 				if (coveringNode instanceof SimpleName) {
-					String qualifedName = "";
+					String qualifiedName;
 					IBinding resolvedBinding = ((SimpleName) coveringNode).resolveBinding();
 					if (resolvedBinding instanceof ITypeBinding) {
-						qualifedName = ((ITypeBinding) resolvedBinding).getQualifiedName();
+						qualifiedName = ((ITypeBinding) resolvedBinding).getQualifiedName();
 					} else {
 						String typeName = "";
 						if (resolvedBinding instanceof IMethodBinding) {
@@ -55,9 +55,9 @@ public class ExtendedNavigateToDefinitionHandler extends NavigateToDefinitionHan
 							typeName = ((IVariableBinding)resolvedBinding).getDeclaringClass().getQualifiedName();
 						}
 						String fieldName = resolvedBinding.getName();
-						qualifedName = new String(typeName + "." + fieldName);
+						qualifiedName = new String(typeName + "." + fieldName);
 					}
-					String uri = String.format("symbol://%s", qualifedName);
+					String uri = String.format("symbol://%s", qualifiedName);
 					location = new Location(uri, JDTUtils.newRange());
 				} 
 			}

@@ -3,47 +3,39 @@ package org.elastic.jdt.ls.core.internal;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Stream;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.IClassFile;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IMember;
-import org.eclipse.jdt.core.ITypeRoot;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.IBinding;
-import org.eclipse.jdt.core.dom.IMethodBinding;
-import org.eclipse.jdt.core.dom.ITypeBinding;
-import org.eclipse.jdt.core.dom.IVariableBinding;
-import org.eclipse.jdt.core.dom.NodeFinder;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
-import org.eclipse.jdt.core.manipulation.CoreASTProvider;
 import org.eclipse.jdt.internal.corext.dom.IASTSharedValues;
+import org.eclipse.jdt.ls.core.internal.HoverInfoProvider;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentSymbolHandler;
-import org.eclipse.jdt.ls.core.internal.handlers.JsonRpcHelpers;
-import org.eclipse.lsp4j.DocumentSymbolParams;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
+import org.eclipse.lsp4j.MarkedString;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.elastic.jdt.ls.core.internal.hover.JavaElementLabels;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 
 @SuppressWarnings("restriction")
-public class FullHandler extends DocumentSymbolHandler {
+public class FullHandler {
 
 	private final PreferenceManager preferenceManager;
 
@@ -52,30 +44,152 @@ public class FullHandler extends DocumentSymbolHandler {
 	}
 
 	public Full full(FullParams fullParams, IProgressMonitor monitor) {
-		TextDocumentIdentifier textDocument = fullParams.getTextDocumentIdentifier();
-		String uri = textDocument.getUri();
-		ITypeRoot unit = JDTUtils.resolveTypeRoot(uri);
-		List<? extends SymbolInformation> symbols = this.documentSymbol(new DocumentSymbolParams(textDocument), monitor);
-		List<DetailSymbolInformation> detailInfos = new ArrayList<>();
-		for (SymbolInformation symbol : symbols) {
-			int line = this.getSymbolLine(symbol);
-			int column = this.getSymbolColumn(symbol);
+//		TextDocumentIdentifier textDocument = fullParams.getTextDocumentIdentifier();
+//		String uri = textDocument.getUri();
+//		ITypeRoot unit = JDTUtils.resolveTypeRoot(uri);
+//        long start = System.currentTimeMillis();
+//		List<? extends SymbolInformation> symbols = this.documentSymbol(new DocumentSymbolParams(textDocument), monitor);
+//        long end = System.currentTimeMillis();
+//        JavaLanguageServerPlugin.logInfo("Get documentSymbol time: " + (end-start) + "ms");
+//		List<DetailSymbolInformation> detailInfos = new ArrayList<>();
+//        start = System.currentTimeMillis();
+//		for (SymbolInformation symbol : symbols) {
+//			int line = this.getSymbolLine(symbol);
+//			int column = this.getSymbolColumn(symbol);
+//			try {
+//				IJavaElement element = JDTUtils.findElementAtSelection(unit, line, column, this.preferenceManager, monitor);
+//				Hover hover = this.getHover(line, column, textDocument, monitor);
+//				DetailSymbolInformation detailInfo = createDetailSymbol(symbol, element, hover);
+//				detailInfos.add(detailInfo);
+//			} catch (JavaModelException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+//        end = System.currentTimeMillis();
+//        JavaLanguageServerPlugin.logInfo("Get Qname time: " + (end-start) + "ms");
+//        start = System.currentTimeMillis();
+//		List<Reference> allReferences = getAllReferences(monitor, textDocument);
+//		end = System.currentTimeMillis();
+//        JavaLanguageServerPlugin.logInfo("Get references time: " + (end-start) + "ms");
+		ITypeRoot unit = JDTUtils.resolveTypeRoot(fullParams.getTextDocumentIdentifier().getUri());
+
+//		SymbolInformation[] elements = this.getOutline(unit, monitor);
+		return this.getFull(unit, monitor);
+	}
+
+
+	private Full getFull(ITypeRoot unit, IProgressMonitor monitor) {
+		try {
+			IJavaElement[] elements = unit.getChildren();
+			ArrayList<DetailSymbolInformation> symbols = new ArrayList<>(elements.length);
+			ArrayList<Reference> references = new ArrayList<>(elements.length);
+			collectSymbolsAndReferences(unit, elements, symbols, references, monitor);
+			return new Full(symbols, references);
+		} catch (JavaModelException e) {
+			JavaLanguageServerPlugin.logException("Problem getting outline for" +  unit.getElementName(), e);
+		}
+		return null;
+	}
+
+
+	private void collectSymbolsAndReferences(ITypeRoot unit, IJavaElement[] elements, ArrayList<DetailSymbolInformation> symbols, ArrayList<Reference> references, IProgressMonitor monitor) throws JavaModelException {
+		for(IJavaElement element : elements ){
+			if (monitor.isCanceled()) {
+				return;
+			}
+			if(element instanceof IParent){
+				collectSymbolsAndReferences(unit, filter(((IParent) element).getChildren()), symbols, references, monitor);
+			}
+			Location rawLocation = JDTUtils.toLocation(element);
+			ICompilationUnit cu = (ICompilationUnit) element.getAncestor(IJavaElement.COMPILATION_UNIT);
+			IClassFile cf = (IClassFile) element.getAncestor(IJavaElement.CLASS_FILE);
+			Location location = null;
+			if (cu != null || (cf != null && cf.getSourceRange() != null)) {
+				location = JDTUtils.toLocation(element);
+			}
+			if (element instanceof IMember && ((IMember) element).getClassFile() != null) {
+				location = JDTUtils.toLocation(((IMember) element).getClassFile());
+			}
+			Reference reference;
+			if (location != null) {
+				reference = new Reference(ReferenceCategory.UNCATEGORIZED, rawLocation, new SymbolLocator(location));
+			} else {
+				String qname = JavaElementLabels.getTextLabel(element, JavaElementLabels.ALL_FULLY_QUALIFIED);
+				reference = new Reference(ReferenceCategory.UNCATEGORIZED, rawLocation, new SymbolLocator(QnameHelper.getSimplifiedQname(qname), DocumentSymbolHandler.mapKind(element)));
+			}
+			// check if the reference already existed
+			if (!references.contains(reference)) {
+				references.add(reference);
+			}
+			int type = element.getElementType();
+			if (type != IJavaElement.TYPE && type != IJavaElement.FIELD && type != IJavaElement.METHOD) {
+				continue;
+			}
 			try {
-				IJavaElement element = JDTUtils.findElementAtSelection(unit, line, column, this.preferenceManager, monitor);
-				Hover hover = this.getHover(symbol, line, column, textDocument, monitor);
-				DetailSymbolInformation detailInfo = createDetailSymbol(symbol, element, hover, monitor);
-				detailInfos.add(detailInfo);
-			} catch (JavaModelException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				if (rawLocation != null) {
+					SymbolInformation si = new SymbolInformation();
+					String qname = JavaElementLabels.getTextLabel(element, JavaElementLabels.ALL_FULLY_QUALIFIED);
+					String name = JavaElementLabels.getElementLabel(element, JavaElementLabels.ALL_DEFAULT);
+					si.setName(name == null ? element.getElementName() : name);
+					List<Either<String, MarkedString>> res = new LinkedList<>();
+					MarkedString signature = HoverInfoProvider.computeSignature(element);
+					res.add(Either.forRight(signature));
+					MarkedString javadoc = HoverInfoProvider.computeJavadoc(element);
+					if (javadoc != null && javadoc.getValue() != null) {
+						res.add(Either.forLeft(javadoc.getValue()));
+					}
+					si.setName(name == null ? element.getElementName() : name);
+					si.setKind(DocumentSymbolHandler.mapKind(element));
+					if (element.getParent() != null) {
+						si.setContainerName(element.getParent().getElementName());
+					}
+					rawLocation.setUri(ResourceUtils.toClientUri(rawLocation.getUri()));
+					si.setLocation(rawLocation);
+					DetailSymbolInformation detailSymbolInfo = new DetailSymbolInformation(si, QnameHelper.getSimplifiedQname(qname), res);
+					if (!symbols.contains(detailSymbolInfo)) {
+						symbols.add(detailSymbolInfo);
+					}
+				}
+			} catch (CoreException e) {
+				// ignore
 			}
 		}
-		List<Reference> allReferences = java.util.Collections.emptyList();
-		if (fullParams.isReference()) {
-			allReferences = getAllReferences(monitor, textDocument);
-		}
+//		List<Reference> allReferences = java.util.Collections.emptyList();
+//		if (fullParams.isReference()) {
+//			allReferences = getAllReferences(monitor, textDocument);
+//		}
+	}
 
-		return new Full(detailInfos, allReferences);
+	private IJavaElement[] filter(IJavaElement[] elements) {
+		return Stream.of(elements)
+				.filter(e -> (!isInitializer(e) && !isSyntheticElement(e)))
+				.toArray(IJavaElement[]::new);
+	}
+
+	private boolean isInitializer(IJavaElement element) {
+		if (element.getElementType() == IJavaElement.METHOD) {
+			String name = element.getElementName();
+			if ((name != null && name.indexOf('<') >= 0)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isSyntheticElement(IJavaElement element) {
+		if (!(element instanceof IMember)) {
+			return false;
+		}
+		IMember member= (IMember)element;
+		if (!(member.isBinary())) {
+			return false;
+		}
+		try {
+			return Flags.isSynthetic(member.getFlags());
+		} catch (JavaModelException e) {
+			return false;
+		}
 	}
 
 	private List<Reference> getAllReferences(IProgressMonitor monitor, TextDocumentIdentifier textDocument) {
@@ -121,7 +235,7 @@ public class FullHandler extends DocumentSymbolHandler {
 								reference = new Reference(ReferenceCategory.UNCATEGORIZED, rawLocation, new SymbolLocator(location));
 							} else {
 								String qname = JavaElementLabels.getTextLabel(element, JavaElementLabels.ALL_FULLY_QUALIFIED);
-								reference = new Reference(ReferenceCategory.UNCATEGORIZED, rawLocation, new SymbolLocator(QnameHelper.getSimplifiedQname(qname), mapKind(element)));
+								reference = new Reference(ReferenceCategory.UNCATEGORIZED, rawLocation, new SymbolLocator(QnameHelper.getSimplifiedQname(qname), DocumentSymbolHandler.mapKind(element)));
 							}
 							// check if the reference already existed
 							if (!allReferences.contains(reference)) {
@@ -141,13 +255,13 @@ public class FullHandler extends DocumentSymbolHandler {
 		return allReferences;
 	}
 
-	private DetailSymbolInformation createDetailSymbol(SymbolInformation symbol, IJavaElement element, Hover hover, IProgressMonitor monitor) {
+	private DetailSymbolInformation createDetailSymbol(SymbolInformation symbol, IJavaElement element, Hover hover) {
 		String qname = JavaElementLabels.getTextLabel(element, JavaElementLabels.ALL_FULLY_QUALIFIED);
 		DetailSymbolInformation detailSymbolInfo = new DetailSymbolInformation(symbol, QnameHelper.getSimplifiedQname(qname), hover.getContents().getLeft(), hover.getRange());
 		return detailSymbolInfo;
 	}
 
-	private Hover getHover(SymbolInformation symbol, int line, int column, TextDocumentIdentifier textDocument, IProgressMonitor monitor) {
+	private Hover getHover(int line, int column, TextDocumentIdentifier textDocument, IProgressMonitor monitor) {
 		ExtendedHoverHandler hoverHandler = new ExtendedHoverHandler(this.preferenceManager);
 		TextDocumentPositionParams position = new TextDocumentPositionParams(textDocument, new Position(line, column));
 		return hoverHandler.extendedHover(position, monitor);
