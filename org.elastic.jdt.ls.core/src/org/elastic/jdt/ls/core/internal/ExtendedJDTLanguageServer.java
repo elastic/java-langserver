@@ -61,8 +61,8 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 		return computeAsync((monitor) -> handler.full(fullParams, monitor));
 	}
 
-	@JsonRequest(value = "textDocument/edefintion", useSegment = false)
-	public CompletableFuture<SymbolLocator> eDefintion(TextDocumentPositionParams position) {
+	@JsonRequest(value = "textDocument/edefinition", useSegment = false)
+	public CompletableFuture<SymbolLocator> eDefinition(TextDocumentPositionParams position) {
 		logInfo(">> document/edefinition");
 		EDefinitionHandler handler = new EDefinitionHandler(this.preferenceManager);
 		return computeAsync((monitor) -> handler.eDefinition(position, monitor));
