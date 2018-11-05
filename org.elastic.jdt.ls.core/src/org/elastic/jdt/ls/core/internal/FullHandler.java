@@ -21,6 +21,8 @@ import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentSymbolHandler;
 import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.MarkedString;
@@ -116,7 +118,7 @@ public class FullHandler {
 				if (bind == null) {
 					return false;
 				} else {
-					return this.addReferenceOfNode(bind.getJavaElement(), node.getStartPosition(), node.getLength());
+					return this.addReferenceOfNode(bind.getJavaElement(), toRange(node.getStartPosition(), node.getLength()));
 				}
 			}
 
@@ -126,21 +128,17 @@ public class FullHandler {
 				if (bind == null) {
 					return false;
 				} else {
-					return this.addReferenceOfNode(bind.getJavaElement(), node.getStartPosition(), node.getLength());
+					return this.addReferenceOfNode(bind.getJavaElement(), toRange(node.getStartPosition(), node.getLength()));
 				}
 			}
 
-			private boolean addReferenceOfNode(IJavaElement element, int start, int length) {
+			private boolean addReferenceOfNode(IJavaElement element, Range range) {
 				try {
 					Reference reference;
-					Location rawLocation = JDTUtils.toLocation(compilationUnit, start, length);
+					Location rawLocation = JDTUtils.toLocation(textDocument.getUri());
+					rawLocation.setRange(range);
 					if (element != null) {
-						ICompilationUnit cu = (ICompilationUnit) element.getAncestor(IJavaElement.COMPILATION_UNIT);
-						IClassFile cf = (IClassFile) element.getAncestor(IJavaElement.CLASS_FILE);
-						Location location = null;
-						if (cu != null || (cf != null && cf.getSourceRange() != null)) {
-							location = JDTUtils.toLocation(element);
-						}
+						Location location = JDTUtils.toLocation(element);
 						if (element instanceof IMember && ((IMember) element).getClassFile() != null) {
 							location = JDTUtils.toLocation(((IMember) element).getClassFile());
 						}
@@ -150,16 +148,27 @@ public class FullHandler {
 							String qname = JavaElementLabels.getTextLabel(element, JavaElementLabels.ALL_FULLY_QUALIFIED);
 							reference = new Reference(ReferenceCategory.UNCATEGORIZED, rawLocation, new SymbolLocator(QnameHelper.getSimplifiedQname(qname), DocumentSymbolHandler.mapKind(element)));
 						}
-						// check if the reference already existed
-						if (!references.contains(reference)) {
-							references.add(reference);
-						}
+						references.add(reference);
 					}
 				} catch (JavaModelException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				return true;
+			}
+
+			private Range toRange(int start, int length) {
+				Range range = JDTUtils.newRange();
+				this.setPosition(range.getStart(), start);
+				this.setPosition(range.getEnd(), start + length);
+				return range;
+			}
+
+			private void setPosition(Position position, int offset) {
+				int line = ast.getLineNumber(offset) - 1;
+				int column = ast.getColumnNumber(offset);
+				position.setLine(line);
+				position.setCharacter(column);
 			}
 		});
 	}
