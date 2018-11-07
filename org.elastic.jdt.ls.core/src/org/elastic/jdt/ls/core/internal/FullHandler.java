@@ -118,8 +118,13 @@ public class FullHandler {
 				if (bind == null) {
 					return false;
 				} else {
-					return this.addReferenceOfNode(bind.getJavaElement(), toRange(node.getStartPosition(), node.getLength()));
+					try {
+						this.addReferenceOfNode(bind.getJavaElement(), toRange(node.getStartPosition(), node.getLength()));
+					} catch (Exception e) {
+						return false;
+					}
 				}
+				return true;
 			}
 
 			@Override
@@ -128,11 +133,16 @@ public class FullHandler {
 				if (bind == null) {
 					return false;
 				} else {
-					return this.addReferenceOfNode(bind.getJavaElement(), toRange(node.getStartPosition(), node.getLength()));
+					try {
+						this.addReferenceOfNode(bind.getJavaElement(), toRange(node.getStartPosition(), node.getLength()));
+					} catch (Exception e) {
+						return false;
+					}
 				}
+				return true;
 			}
 
-			private boolean addReferenceOfNode(IJavaElement element, Range range) {
+			private void addReferenceOfNode(IJavaElement element, Range range) {
 				try {
 					Reference reference;
 					Location rawLocation = JDTUtils.toLocation(textDocument.getUri());
@@ -154,7 +164,6 @@ public class FullHandler {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				return true;
 			}
 
 			private Range toRange(int start, int length) {
