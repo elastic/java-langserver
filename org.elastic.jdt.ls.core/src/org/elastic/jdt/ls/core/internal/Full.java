@@ -1,12 +1,6 @@
 package org.elastic.jdt.ls.core.internal;
 import java.util.List;
 
-import org.eclipse.lsp4j.Location;
-import org.eclipse.lsp4j.MarkedString;
-import org.eclipse.lsp4j.MarkupContent;
-import org.eclipse.lsp4j.SymbolInformation;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
-import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
 
 @SuppressWarnings("all")
 public class Full {

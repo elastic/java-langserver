@@ -1,6 +1,5 @@
 package org.elastic.jdt.ls.core.internal;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
