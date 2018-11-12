@@ -1,13 +1,16 @@
 package org.elastic.jdt.ls.core.internal;
 
 import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.MarkedString;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ITypeRoot;
@@ -31,7 +34,7 @@ public class ExtendedHoverHandler extends HoverHandler {
 	}
 	
 	public Hover extendedHover(TextDocumentPositionParams position, IProgressMonitor monitor) {
-		Hover hover = this.hover(position, monitor);
+		Hover hover = removeLinkInHoverContent(hover(position, monitor));
 		String uri = position.getTextDocument().getUri();
         ITypeRoot unit = JDTUtils.resolveTypeRoot(uri);
         // use nodefinder to get the covering node
@@ -53,5 +56,26 @@ public class ExtendedHoverHandler extends HoverHandler {
 			}	
 		}
 		return hover;
+	}
+
+	// disable the markdown link in the hover
+	private Hover removeLinkInHoverContent(Hover hover) {
+		List<Either<String, MarkedString>> contents = hover.getContents().getLeft();
+		if (contents == null) {
+			return hover;
+		}
+		for (int i = 0; i < contents.size(); i++) {
+			String originMarkdown = contents.get(i).getLeft();
+			if (originMarkdown != null) {
+				contents.set(i, Either.forLeft(FromLinkToCode(originMarkdown)));
+			}
+		}
+		hover.setContents(contents);
+		return hover;
+	}
+
+	private String FromLinkToCode(String origin) {
+		String regex = "\\[(.+)\\]\\((.+)\\)";
+		return origin.replaceAll(regex, "`$1`");
 	}
 }
