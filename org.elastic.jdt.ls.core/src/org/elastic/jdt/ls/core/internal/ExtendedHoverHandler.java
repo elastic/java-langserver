@@ -75,7 +75,7 @@ public class ExtendedHoverHandler extends HoverHandler {
 	}
 
 	private String FromLinkToCode(String origin) {
-		String regex = "\\[(.+)\\]\\((.+)\\)";
+		String regex = "\\[([^\\]]+)\\](\\([^\\)]+\\)|\\[[^\\]]+\\])";
 		return origin.replaceAll(regex, "`$1`");
 	}
 }
