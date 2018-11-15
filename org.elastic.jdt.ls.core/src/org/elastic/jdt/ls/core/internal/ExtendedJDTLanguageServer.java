@@ -18,6 +18,9 @@ import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
+import org.eclipse.lsp4j.InitializeParams;
+import org.eclipse.lsp4j.InitializeResult;
+import org.eclipse.lsp4j.DidChangeWorkspaceFoldersParams;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.CompletableFutures;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
@@ -25,11 +28,28 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 
 public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 
+	private ProjectsManager pm;
+
 	private PreferenceManager preferenceManager;
 
 	public ExtendedJDTLanguageServer(ProjectsManager projects, PreferenceManager preferenceManager) {
 		super(projects, preferenceManager);
+		this.pm = projects;
 		this.preferenceManager = preferenceManager;
+	}
+
+	@Override
+	public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
+		logInfo(">> initialize");
+		SynchronizedInitHandler handler = new SynchronizedInitHandler(pm, preferenceManager);
+		return computeAsync((monitor) -> handler.initialize(params, monitor));
+	}
+
+	@Override
+	public void didChangeWorkspaceFolders(DidChangeWorkspaceFoldersParams params) {
+		logInfo(">> java/didChangeWorkspaceFolders");
+		SynchronizedWorkspaceFolderChangeHandler handler = new SynchronizedWorkspaceFolderChangeHandler(pm);
+		handler.update(params);
 	}
 
 	@Override
