@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -19,7 +20,9 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.jdt.ls.core.internal.JSONUtility;
 import org.eclipse.jdt.ls.core.internal.JavaClientConnection;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
@@ -58,6 +61,7 @@ final public class SynchronizedInitHandler {
     private ProjectsManager projectsManager;
     private PreferenceManager preferenceManager;
     private static WorkspaceDiagnosticsHandler workspaceDiagnosticsHandler;
+    private final CountDownLatch countDownLatch = new CountDownLatch(1);
 
     public SynchronizedInitHandler(ProjectsManager manager, PreferenceManager preferenceManager) {
         this.projectsManager = manager;
@@ -198,15 +202,46 @@ final public class SynchronizedInitHandler {
     }
 
     private void triggerInitialization(Collection<IPath> roots, IProgressMonitor monitor) {
-        long start = System.currentTimeMillis();
-        SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
+        Job job = new WorkspaceJob("Initialize Workspace") {
+            @Override
+            public IStatus runInWorkspace(IProgressMonitor monitor) {
+                long start = System.currentTimeMillis();
+                SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
+                try {
+                    projectsManager.setAutoBuilding(false);
+                    projectsManager.initializeProjects(roots, subMonitor);
+                    JavaLanguageServerPlugin.logInfo("Workspace initialized in " + (System.currentTimeMillis() - start) + "ms");
+                } catch (OperationCanceledException e) {
+                } catch (Exception e) {
+                    JavaLanguageServerPlugin.logException("Initialization failed ", e);
+                }
+                return Status.OK_STATUS;
+            }
+
+            /* (non-Javadoc)
+             * @see org.eclipse.core.runtime.jobs.Job#belongsTo(java.lang.Object)
+             */
+            @Override
+            public boolean belongsTo(Object family) {
+                return JAVA_LS_INITIALIZATION_JOBS.equals(family);
+            }
+
+        };
+        job.setPriority(Job.BUILD);
+        job.setRule(ResourcesPlugin.getWorkspace().getRoot());
+        job.schedule();
+        job.addJobChangeListener(new JobChangeAdapter() {
+            @Override
+            public void done(IJobChangeEvent event) {
+                countDownLatch.countDown();
+            }
+        });
+        // main thread wait until initialize job finishes
         try {
-            projectsManager.setAutoBuilding(false);
-            projectsManager.initializeProjects(roots, subMonitor);
-            JavaLanguageServerPlugin.logInfo("Workspace initialized in " + (System.currentTimeMillis() - start) + "ms");
-        } catch (OperationCanceledException e) {
-        } catch (Exception e) {
-            JavaLanguageServerPlugin.logException("Initialization failed ", e);
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 
