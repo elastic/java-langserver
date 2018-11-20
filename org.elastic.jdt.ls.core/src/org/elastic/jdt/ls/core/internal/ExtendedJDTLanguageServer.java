@@ -1,30 +1,34 @@
 package org.elastic.jdt.ls.core.internal;
 
 import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
+import static org.eclipse.jdt.ls.core.internal.handlers.InitHandler.JAVA_LS_INITIALIZATION_JOBS;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Function;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.jdt.ls.core.internal.CancellableProgressMonitor;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentLifeCycleHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer;
 import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
+import org.elastic.jdt.ls.core.internal.EDefinitionHandler;
+import org.eclipse.lsp4j.DidChangeWorkspaceFoldersParams;
 import org.eclipse.lsp4j.Hover;
-import org.eclipse.lsp4j.Location;
-import org.eclipse.lsp4j.TextDocumentPositionParams;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
-import org.eclipse.lsp4j.DidChangeWorkspaceFoldersParams;
+import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.TextDocumentPositionParams;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.CompletableFutures;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
-
 
 public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 
@@ -41,8 +45,27 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 	@Override
 	public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
 		logInfo(">> initialize");
-		SynchronizedInitHandler handler = new SynchronizedInitHandler(pm, preferenceManager);
-		return computeAsync((monitor) -> handler.initialize(params, monitor));
+		CompletableFuture<InitializeResult> result = super.initialize(params);
+		Job[] initialJobs = Job.getJobManager().find(JAVA_LS_INITIALIZATION_JOBS);
+		// should exist one initial job
+		if (initialJobs.length == 1) {
+			initialJobs[0].addJobChangeListener(new JobChangeAdapter() {
+				@Override
+				public void done(IJobChangeEvent event) {
+					countDownLatch.countDown();
+				}
+			});
+		}
+		JavaLanguageServerPlugin.logInfo("begin" + System.currentTimeMillis() + "ms");
+		// main thread wait until update job done
+		try {
+			countDownLatch.await();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		JavaLanguageServerPlugin.logInfo("end" + System.currentTimeMillis() + "ms");
+		return result;
 	}
 
 	@Override
