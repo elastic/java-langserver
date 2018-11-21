@@ -36,6 +36,8 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 
 	private PreferenceManager preferenceManager;
 
+	private final CountDownLatch countDownLatch = new CountDownLatch(1);
+
 	public ExtendedJDTLanguageServer(ProjectsManager projects, PreferenceManager preferenceManager) {
 		super(projects, preferenceManager);
 		this.pm = projects;
@@ -55,16 +57,16 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 					countDownLatch.countDown();
 				}
 			});
+			JavaLanguageServerPlugin.logInfo("initial job begins at " + System.currentTimeMillis() + "ms");
+			// if there's an initial job, main thread will wait until initial job done
+			try {
+				countDownLatch.await();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			JavaLanguageServerPlugin.logInfo("initial job ends at " + System.currentTimeMillis() + "ms");
 		}
-		JavaLanguageServerPlugin.logInfo("begin" + System.currentTimeMillis() + "ms");
-		// main thread wait until update job done
-		try {
-			countDownLatch.await();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		JavaLanguageServerPlugin.logInfo("end" + System.currentTimeMillis() + "ms");
 		return result;
 	}
 
