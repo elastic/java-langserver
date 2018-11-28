@@ -9,7 +9,7 @@
             thread="main"
             visible="true">
          <run
-               class="org.elastic.jdt.ls.core.internal.LanguageServer">
+               class="org.eclipse.jdt.ls.core.internal.LanguageServer">
          </run>
       </application>
    </extension>

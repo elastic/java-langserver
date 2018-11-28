@@ -48,6 +48,8 @@ import org.eclipse.jdt.ls.core.internal.managers.ContentProviderManager;
 import org.eclipse.jdt.ls.core.internal.managers.DigestStore;
 import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
+import org.eclipse.jdt.ls.core.internal.LanguageServer;
+import org.eclipse.jdt.ls.core.internal.ParentProcessWatcher;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
