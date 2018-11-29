@@ -1,11 +1,13 @@
 package org.elastic.jdt.ls.core.internal;
 
-import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
+import static org.elastic.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 import static org.eclipse.jdt.ls.core.internal.handlers.InitHandler.JAVA_LS_INITIALIZATION_JOBS;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -14,7 +16,6 @@ import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.jdt.ls.core.internal.CancellableProgressMonitor;
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentLifeCycleHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer;
 import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
@@ -31,6 +32,8 @@ import org.eclipse.lsp4j.jsonrpc.CompletableFutures;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 
 public class ExtendedJDTLanguageServer extends JDTLanguageServer {
+
+	private static final int FORCED_EXIT_CODE = 1;
 
 	private ProjectsManager pm;
 
@@ -107,6 +110,16 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 		logInfo(">> document/edefinition");
 		EDefinitionHandler handler = new EDefinitionHandler(this.preferenceManager);
 		return computeAsync((monitor) -> handler.eDefinition(position, monitor));
+	}
+
+	@Override
+	public void exit() {
+		logInfo(">> exit");
+		JavaLanguageServerPlugin.getLanguageServer().exit();
+		Executors.newSingleThreadScheduledExecutor().schedule(() -> {
+			logInfo("Forcing exit after 1 min.");
+			System.exit(FORCED_EXIT_CODE);
+		}, 1, TimeUnit.MINUTES);
 	}
 
 	private <R> CompletableFuture<R> computeAsync(Function<IProgressMonitor, R> code) {
