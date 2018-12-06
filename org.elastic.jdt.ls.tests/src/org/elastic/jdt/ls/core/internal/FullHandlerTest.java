@@ -3,6 +3,7 @@ package org.elastic.jdt.ls.core.internal;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -57,6 +58,10 @@ public class FullHandlerTest extends AbstractProjectsManagerBasedTest {
 		//then
 		assertNotNull(full);
 		assertNotSame(0, full.getSymbols().size());
+		for (DetailSymbolInformation s : full.getSymbols()) {
+			assertNotNull(s.getContents());
+			assertNotNull(s.getQname());
+		}
 		assertSame(0, full.getReferences().size());
 	}
 
@@ -72,7 +77,15 @@ public class FullHandlerTest extends AbstractProjectsManagerBasedTest {
 		//then
 		assertNotNull(full);
 		assertNotSame(0, full.getSymbols().size());
+		for (DetailSymbolInformation s : full.getSymbols()) {
+			assertNotNull(s.getContents());
+			assertNotNull(s.getQname());
+		}
 		assertNotSame(0, full.getReferences().size());
+		for (Reference ref : full.getReferences()) {
+			assertNotNull(ref.getLocation());
+			assertTrue(ref.getTarget().getQname() != null || ref.getTarget().getLocation() != null);
+		}
 	}
 
 	FullParams getFullParams(String file, boolean isRef) {
