@@ -1,13 +1,3 @@
-/*******************************************************************************
- * Copyright (c) 2018 Red Hat Inc. and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *     Red Hat Inc. - initial API and implementation
- *******************************************************************************/
 package org.elastic.jdt.ls.core.internal;
 
 import static org.junit.Assert.assertNotNull;
@@ -26,10 +16,6 @@ import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 import org.eclipse.jdt.ls.core.internal.preferences.Preferences;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
-// import org.elastic.jdt.ls.core.internal.Full;
-// import org.elastic.jdt.ls.core.internal.FullHandler;
-// import org.elastic.jdt.ls.core.internal.FullParams;
-// import org.elastic.jdt.ls.core.internal.WorkspaceHelper;
 import org.elastic.jdt.ls.core.internal.managers.AbstractProjectsManagerBasedTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,19 +25,6 @@ import org.junit.Test;
  *
  */
 public class FullHandlerTest extends AbstractProjectsManagerBasedTest {
-
-	//	private static String FULL_TEMPLATE =
-	//			"{\n" +
-	//					"    \"id\": \"1\",\n" +
-	//					"    \"method\": \"textDocument/full\",\n" +
-	//					"    \"params\": {\n" +
-	//					"        \"textDocument\": {\n" +
-	//					"            \"uri\": \"${file}\"\n" +
-	//					"        },\n" +
-	//					"		 \"reference\": false\n" +
-	//					"    },\n" +
-	//					"    \"jsonrpc\": \"2.0\"\n" +
-	//					"}";
 
 	private FullHandler handler;
 
@@ -108,16 +81,5 @@ public class FullHandlerTest extends AbstractProjectsManagerBasedTest {
 		TextDocumentIdentifier textDocument = new TextDocumentIdentifier(fileURI);
 		return new FullParams(textDocument, isRef);
 	}
-
-	//
-	//	String createFullRequest(String file) {
-	//		URI uri = project.getFile(file).getRawLocationURI();
-	//		return createFullRequest(uri);
-	//	}
-	//
-	//	String createFullRequest(URI file) {
-	//		String fileURI = ResourceUtils.fixURI(file);
-	//		return FULL_TEMPLATE.replace("${file}", fileURI);
-	//	}
 
 }

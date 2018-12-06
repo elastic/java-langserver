@@ -9,10 +9,7 @@ import org.eclipse.lsp4j.jsonrpc.json.MessageJsonHandler;
 import org.eclipse.lsp4j.jsonrpc.messages.Message;
 import org.eclipse.lsp4j.jsonrpc.services.ServiceEndpoints;
 
-/**
- * @author Fred Bricon
- *
- */
+
 public final class JsonMessageHelper {
 
 	private static MessageJsonHandler handler;

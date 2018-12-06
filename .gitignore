@@ -3,5 +3,14 @@
 target/
 bin/
 **/lib/
+**.iml
 maven-wrapper.jar
-
+.gradle
+.idea
+org.eclipse.jdt.ls.tests
+out
+repository
+target.maven
+target.p2
+**distro
+**workspace
