@@ -24,6 +24,7 @@
 	<modules>
 		<module>org.elastic.jdt.ls.target</module>
 		<module>org.elastic.jdt.ls.core</module>
+		<module>org.elastic.jdt.ls.tests</module>
 		<module>org.elastic.jdt.ls.product</module>
 	</modules>
 	<build>
@@ -238,6 +239,26 @@
 								<goals>
 									<goal>plugin-source</goal>
 								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>0.8.2</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+								<configuration>
+									<sessionId>${project.artifactId}</sessionId>
+									<includes>
+										<include>${coverage.filter}</include>
+									</includes>
+									<!-- Merge reports from all executions -->
+									<append>true</append>
+								</configuration>
 							</execution>
 						</executions>
 					</plugin>
