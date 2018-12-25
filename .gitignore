@@ -12,5 +12,8 @@ out
 repository
 target.maven
 target.p2
-**distro
-**workspace
+**/distro
+**/workspace
+**/.settings
+.vscode
+**/classes
