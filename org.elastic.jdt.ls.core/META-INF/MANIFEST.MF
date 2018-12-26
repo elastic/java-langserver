@@ -19,6 +19,7 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="3.15.0",
  org.eclipse.ant.core;bundle-version="3.5.200",
  org.apache.ant;bundle-version="1.10.5",
  javax.annotation;bundle-version="1.2.0"
+Export-Package: org.elastic.jdt.ls.core.internal;x-friends:="org.elastic.jdt.ls.tests"
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.elastic.jdt.ls.core.internal.JavaLanguageServerPlugin
 Import-Package: org.eclipse.ant.internal.ui,

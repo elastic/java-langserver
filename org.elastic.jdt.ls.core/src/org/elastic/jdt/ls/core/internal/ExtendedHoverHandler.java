@@ -13,6 +13,10 @@ import java.io.IOException;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.URIUtil;
+import org.eclipse.jdt.core.IClassFile;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -24,11 +28,13 @@ import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.jdt.ls.core.internal.handlers.HoverHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.JsonRpcHelpers;
+import org.eclipse.jdt.ls.core.internal.managers.ContentProviderManager;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
+import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 
 
 public class ExtendedHoverHandler extends HoverHandler {
-	
+
 	public ExtendedHoverHandler(PreferenceManager preferenceManager) {
 		super(preferenceManager);
 	}
@@ -40,8 +46,18 @@ public class ExtendedHoverHandler extends HoverHandler {
         // use nodefinder to get the covering node
 		if (unit != null && !monitor.isCanceled()) {
 			try {
-				File file = ResourceUtils.toFile(JDTUtils.toURI(uri));
-				String content = Files.toString(file, Charsets.UTF_8);
+				String content;
+				if (URIUtil.isFileURI(JDTUtils.toURI(uri))) {
+					File file = ResourceUtils.toFile(JDTUtils.toURI(uri));	
+					content = Files.toString(file, Charsets.UTF_8);
+				} else if (unit instanceof IClassFile) {
+					IClassFile classFile = (IClassFile) unit;
+					ContentProviderManager contentProvider = JavaLanguageServerPlugin.getContentProviderManager();
+					content = contentProvider.getSource(classFile, monitor);
+					JavaLanguageServerPlugin.logInfo(content);
+				} else {
+					return hover;
+				}
 				ASTParser parser = ASTParser.newParser(IASTSharedValues.SHARED_AST_LEVEL);
 				char[] source = content.toCharArray();
 				parser.setIgnoreMethodBodies(false);
@@ -49,10 +65,11 @@ public class ExtendedHoverHandler extends HoverHandler {
 				CompilationUnit ast = (CompilationUnit) parser.createAST(null);
 				NodeFinder fNodeFinder = new NodeFinder(ast, JsonRpcHelpers.toOffset(unit.getBuffer(), position.getPosition().getLine(), position.getPosition().getCharacter()), 0);
 				ASTNode node = fNodeFinder.getCoveringNode();
-				hover.setRange(JDTUtils.toRange(unit, node.getStartPosition(), node.getLength()));
+				if (node != null) {
+					hover.setRange(JDTUtils.toRange(unit, node.getStartPosition(), node.getLength()));
+				}
 			} catch (JavaModelException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				JavaLanguageServerPlugin.logException("get range error", e);
 			}	
 		}
 		return hover;

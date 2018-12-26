@@ -14,6 +14,11 @@ public class FullParams {
 		this.setTextDocumentIdentifier(textDocument);
 	}
 
+	public FullParams(TextDocumentIdentifier textDocument, boolean reference) {
+		this.setTextDocumentIdentifier(textDocument);
+		this.setReference(reference);
+	}
+
 	public void setTextDocumentIdentifier(TextDocumentIdentifier textDocument) {
 		this.textDocument = textDocument;
 	}
