@@ -86,17 +86,7 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 		ExtendedHoverHandler handler = new ExtendedHoverHandler(this.preferenceManager);
 		return computeAsync((monitor) -> handler.extendedHover(position, monitor));
 	}
-
-	@Override
-	public CompletableFuture<List<? extends Location>> definition(TextDocumentPositionParams position) {
-		logInfo(">> document/definition");
-		ExtendedNavigateToDefinitionHandler handler = new ExtendedNavigateToDefinitionHandler(this.preferenceManager);
-		return computeAsync((monitor) -> {
-			waitForLifecycleJobs(monitor);
-			return handler.extendedDefinition(position, monitor);
-		});
-	}
-
+	
 	@JsonRequest(value = "textDocument/full", useSegment = false)
 	public CompletableFuture<Full> full(FullParams fullParams) {
 		logInfo(">> document/full");
