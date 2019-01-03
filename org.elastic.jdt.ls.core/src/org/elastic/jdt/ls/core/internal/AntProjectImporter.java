@@ -6,6 +6,7 @@ import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.ls.core.internal.AbstractProjectImporter;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.managers.BasicFileDetector;
@@ -63,9 +64,12 @@ public class AntProjectImporter extends AbstractProjectImporter {
 				// TODO:pcxu add a configuration to figure out which javac task to use
 				try {
 					Javac javacTask = (Javac) javacTasks.get(0);
-					pc.createJavaProjectFromJavacNode(project.getParent().getFileName().toString(), javacTask, monitor);
+					IJavaProject javaProject = pc.createJavaProjectFromJavacNode(project.getFileName().toString(), javacTask, subMonitor);
+					if (javaProject == null) {
+						JavaLanguageServerPlugin.logError("ant project is null");
+					}
 				} catch (Exception e) {
-					//
+					JavaLanguageServerPlugin.logException("import ant project error", e);
 				}
 			}
 

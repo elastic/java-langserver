@@ -30,6 +30,6 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="3.12.0",
  org.eclipse.xtext.xbase.lib,
  org.eclipse.jdt.launching,
  org.elastic.jdt.ls.core,
- org.eclipse.jdt.ls.core;bundle-version="0.24.0"
+ org.eclipse.jdt.ls.core
 Bundle-Vendor: %Bundle-Vendor
 Bundle-Activator: org.elastic.jdt.ls.core.internal.JavaLanguageServerTestPlugin
