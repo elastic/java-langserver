@@ -203,6 +203,13 @@
 				<extensions>true</extensions>
 			</plugin>
 		</plugins>
+		<extensions>
+			<extension>
+			<groupId>org.springframework.build</groupId>
+			<artifactId>aws-maven</artifactId>
+			<version>5.0.0.RELEASE</version>
+			</extension>
+  		</extensions>
 	</build>
 	<repositories>
 		<repository>
@@ -212,11 +219,11 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
-        <repository>
-      <id>jdt.ls</id>
-      <layout>p2</layout>
-      <url>http://download.eclipse.org/jdtls/snapshots/repository/latest/</url>
-    </repository>
+			<repository>
+			<id>jdt.ls</id>
+			<layout>p2</layout>
+			<url>http://download.eclipse.org/jdtls/snapshots/repository/latest/</url>
+		</repository>
 	</repositories>
 	<profiles>
 		<profile>
@@ -360,4 +367,14 @@
 			<url>https://repo.eclipse.org/content/repositories/cbi-releases/</url>
 		</pluginRepository>
 	</pluginRepositories>
+	<distributionManagement>
+	<snapshotRepository>
+		<id>download.elasticsearch.org</id>
+		<url>s3://download.elasticsearch.org/code/java-langserver/snapshot</url>
+	</snapshotRepository>
+	<repository>
+		<id>download.elasticsearch.org</id>
+		<url>s3://download.elasticsearch.org/code/java-langserver/release</url>
+	</repository>
+	</distributionManagement>
 </project>
