@@ -203,13 +203,13 @@
 				<extensions>true</extensions>
 			</plugin>
 		</plugins>
-		<extensions>
+		<!-- <extensions>
 			<extension>
 			<groupId>org.springframework.build</groupId>
 			<artifactId>aws-maven</artifactId>
 			<version>5.0.0.RELEASE</version>
 			</extension>
-  		</extensions>
+  		</extensions> -->
 	</build>
 	<repositories>
 		<repository>
@@ -367,7 +367,7 @@
 			<url>https://repo.eclipse.org/content/repositories/cbi-releases/</url>
 		</pluginRepository>
 	</pluginRepositories>
-	<distributionManagement>
+	<!-- <distributionManagement>
 	<snapshotRepository>
 		<id>download.elasticsearch.org</id>
 		<url>s3://download.elasticsearch.org/code/java-langserver/snapshot</url>
@@ -376,5 +376,5 @@
 		<id>download.elasticsearch.org</id>
 		<url>s3://download.elasticsearch.org/code/java-langserver/release</url>
 	</repository>
-	</distributionManagement>
+	</distributionManagement> -->
 </project>
