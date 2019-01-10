@@ -17,3 +17,6 @@ target.p2
 **/.settings
 .vscode
 **/classes
+npm-debug.log*
+node_modules
+**/build/
