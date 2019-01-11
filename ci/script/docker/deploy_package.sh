@@ -4,6 +4,7 @@ set -e
 if [ $# -eq 0 ]; then 
     echo "deploy snapshot package.."
     KIBANA_VERSION=6.5.4
+    DESTINATION=snapshot/
     CMD="./mvnw clean verify -B -e && \\"
 elif [ $# -eq 2 ]; then
     echo "deploy release package.."
@@ -11,6 +12,7 @@ elif [ $# -eq 2 ]; then
     echo "Kibana version: $2"
     VERSION=$1
     KIBANA_VERSION=$2
+    DESTINATION=release/
     CMD="./mvnw -Dtycho.mode=maven -DnewVersion=$VERSION -D-Pserver-distro org.eclipse.tycho:tycho-versions-plugin:set-version && \
          jq '.version=\"$VERSION\"' package.json > tmp && mv tmp package.json && \\"
 else
@@ -40,4 +42,4 @@ docker run \
                   ./mvnw -DskipTests=true clean deploy -DaltDeploymentRepository=dev::default::file:./repository -B -e -Pserver-distro && \
                   mv org.elastic.jdt.ls.product/distro/jdt-language-server* lib && \
                   yarn kbn bootstrap && echo $KIBANA_VERSION | yarn build && \
-                  aws s3 cp build/java_languageserver-*.zip s3://download.elasticsearch.org/code/java-langserver/snapshot/"
+                  aws s3 cp build/java_languageserver-*.zip s3://download.elasticsearch.org/code/java-langserver/$DESTINATION"
