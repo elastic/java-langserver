@@ -28,7 +28,7 @@ elif [[ -z "${AWS_SECRET_ACCESS_KEY}" ]]; then
     exit 1
 fi
 
-docker build --rm -f "ci/Dockerfile" --build-arg KIBANA_VERSION=$KIBANA_VERSION -t code-lsp-java-langserver-ci:latest ci
+docker build --rm -f ".ci/Dockerfile" --build-arg KIBANA_VERSION=$KIBANA_VERSION -t code-lsp-java-langserver-ci:latest .ci
 
 docker run \
     --rm -t $(tty &>/dev/null && echo "-i") \
