@@ -1,5 +1,7 @@
 package org.elastic.jdt.ls.core.internal;
 
+import java.net.URI;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -9,6 +11,7 @@ import static org.mockito.Mockito.when;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
+import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.SymbolKind;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
@@ -55,6 +58,28 @@ public class EDefinitionHandlerTest extends AbstractProjectsManagerBasedTest {
 		assertEquals("java.text.Normalizer", definition.getQname());
 	}
 
+	@Test
+	public void test3rdPartyQname() throws Exception {
+		when(preferenceManager.isClientSupportsClassFileContent()).thenReturn(false);
+		URI uri = project.getFile("src/main/java/java/Foo.java").getRawLocationURI();
+		String fileURI = ResourceUtils.fixURI(uri);
+		SymbolLocator definition = handler.eDefinition(new TextDocumentPositionParams(new TextDocumentIdentifier(fileURI), new Position(2, 38)), monitor);
+		assertNull(definition.getLocation());
+		assertEquals(SymbolKind.Class, definition.getSymbolKind());
+		assertEquals("org.apache.commons.lang3.StringUtils", definition.getQname());
+	}
+
+	@Test
+	public void testJDKQname() throws Exception {
+		when(preferenceManager.isClientSupportsClassFileContent()).thenReturn(false);
+		URI uri = project.getFile("src/main/java/java/Foo2.java").getRawLocationURI();
+		String fileURI = ResourceUtils.fixURI(uri);
+		SymbolLocator definition = handler.eDefinition(new TextDocumentPositionParams(new TextDocumentIdentifier(fileURI), new Position(2, 21)), monitor);
+		assertNull(definition.getLocation());
+		assertEquals(SymbolKind.Class, definition.getSymbolKind());
+		assertEquals("java.io.IOException", definition.getQname());
+	}
+	
 	@Test
 	public void testDisassembledSource() throws Exception {
 		testClass("javax.tools.Tool", 6, 44);
