@@ -1,6 +1,10 @@
 package org.elastic.jdt.ls.core.internal;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -11,9 +15,14 @@ import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.SimpleName;
-import org.eclipse.jdt.core.dom.SimpleType;
+import org.eclipse.jdt.core.dom.ConstructorInvocation;
+import org.eclipse.jdt.core.dom.FieldAccess;
+import org.eclipse.jdt.core.dom.SuperConstructorInvocation;
+import org.eclipse.jdt.core.dom.SuperFieldAccess;
+import org.eclipse.jdt.core.dom.SuperMethodInvocation;
 import org.eclipse.jdt.core.dom.IBinding;
+import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.internal.corext.dom.IASTSharedValues;
 import org.eclipse.jdt.ls.core.internal.HoverInfoProvider;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
@@ -85,10 +94,10 @@ public class FullHandler {
 				List<Either<String, MarkedString>> res = new LinkedList<>();
 				MarkedString signature = HoverInfoProvider.computeSignature(element);
 				res.add(Either.forRight(signature));
-//				MarkedString javadoc = HoverInfoProvider.computeJavadoc(element);
-//				if (javadoc != null && javadoc.getValue() != null) {
-//					res.add(Either.forLeft(javadoc.getValue()));
-//				}
+				// MarkedString javadoc = HoverInfoProvider.computeJavadoc(element);
+				// if (javadoc != null && javadoc.getValue() != null) {
+				// 	res.add(Either.forLeft(javadoc.getValue()));
+				// }
 				si.setName(name == null ? element.getElementName() : name);
 				si.setKind(DocumentSymbolHandler.mapKind(element));
 				if (element.getParent() != null) {
@@ -100,7 +109,7 @@ public class FullHandler {
 				if (!symbols.contains(detailSymbolInfo)) {
 					symbols.add(detailSymbolInfo);
 				}
-            }
+			}
 		}
 	}
 
@@ -114,10 +123,86 @@ public class FullHandler {
 		parser.setBindingsRecovery(true);
 		CompilationUnit ast = (CompilationUnit) parser.createAST(null);
 		ast.accept(new ASTVisitor() {
-
+			
 			@Override
-			public boolean visit(SimpleName node) {
+			public boolean visit(QualifiedName node) {
 				IBinding bind = node.resolveBinding();
+				if (bind == null) {
+					return false;
+				} else {
+					try {
+						this.addReferenceOfNode(bind.getJavaElement(), toRange(node.getStartPosition(), node.getLength()));
+					} catch (Exception e) {
+						return false;
+					}
+				}
+				return false;
+			}
+			
+			@Override
+			public boolean visit(SuperFieldAccess node) {
+				IBinding bind = node.resolveFieldBinding();
+				if (bind == null) {
+					return false;
+				} else {
+					try {
+						this.addReferenceOfNode(bind.getJavaElement(), toRange(node.getStartPosition(), node.getLength()));
+					} catch (Exception e) {
+						return false;
+					}
+				}
+				return true;
+			}
+			
+			@Override
+			public boolean visit(FieldAccess node) {
+				IBinding bind = node.resolveFieldBinding();
+				if (bind == null) {
+					return false;
+				} else {
+					try {
+						this.addReferenceOfNode(bind.getJavaElement(), toRange(node.getStartPosition(), node.getLength()));
+					} catch (Exception e) {
+						return false;
+					}
+				}
+				return true;
+			}
+			
+			@Override
+			public boolean visit(ConstructorInvocation node) {
+				IBinding bind = node.resolveConstructorBinding();
+				if (bind == null) {
+					return false;
+				} else {
+					try {
+						this.addReferenceOfNode(bind.getJavaElement(), toRange(node.getStartPosition(), node.getLength()));
+					} catch (Exception e) {
+						return false;
+					}
+				}
+				return true;
+			}
+			
+			
+			@Override
+			public boolean visit(SuperConstructorInvocation node) {
+				IBinding bind = node.resolveConstructorBinding();
+				if (bind == null) {
+					return false;
+				} else {
+					try {
+						this.addReferenceOfNode(bind.getJavaElement(), toRange(node.getStartPosition(), node.getLength()));
+					} catch (Exception e) {
+						return false;
+					}
+				}
+				return true;
+			}
+			
+			@Override
+			public boolean visit(SuperMethodInvocation node) {
+				IBinding bind = node.resolveMethodBinding();
 				if (bind == null) {
 					return false;
 				} else {
@@ -131,8 +216,8 @@ public class FullHandler {
 			}
 
 			@Override
-			public boolean visit(SimpleType node) {
-				IBinding bind = node.resolveBinding();
+			public boolean visit(MethodInvocation node) {
+				IBinding bind = node.resolveMethodBinding();
 				if (bind == null) {
 					return false;
 				} else {
@@ -165,7 +250,7 @@ public class FullHandler {
 					}
 				} catch (JavaModelException e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
+					JavaLanguageServerPlugin.logException("Find references failure ", e);
 				}
 			}
 
@@ -182,7 +267,7 @@ public class FullHandler {
 				position.setLine(line);
 				position.setCharacter(column);
 			}
-		});
+		});	
 	}
 
 	private IJavaElement[] filter(IJavaElement[] elements) {
