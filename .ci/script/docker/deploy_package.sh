@@ -3,7 +3,7 @@ set -e
 
 if [ $# -eq 0 ]; then 
     echo "deploy snapshot package.."
-    KIBANA_VERSION=7.0.0
+    KIBANA_VERSION=8.0.0
     DESTINATION=snapshot/
     CMD="./mvnw clean verify -B -e && \\"
 elif [ $# -eq 2 ]; then
@@ -40,6 +40,23 @@ docker run \
     /bin/bash -c "set -x && \
                   $CMD
                   ./mvnw -DskipTests=true clean deploy -DaltDeploymentRepository=dev::default::file:./repository -B -e -Pserver-distro && \
-                  mv org.elastic.jdt.ls.product/distro/jdt-language-server* lib && \
-                  yarn kbn bootstrap && echo $KIBANA_VERSION | yarn build && \
-                  aws s3 cp build/java_languageserver-*.zip s3://download.elasticsearch.org/code/java-langserver/$DESTINATION"
+                  yarn kbn bootstrap && \
+                  mv org.elastic.jdt.ls.product/distro/jdt-language-server*linux* lib && \
+                  jq '.version=\"\\(.version)-linux\"' package.json > tmp && mv tmp package.json && \
+                  echo $KIBANA_VERSION | yarn build && \
+                  aws s3 cp build/java_languageserver-*.zip s3://download.elasticsearch.org/code/java-langserver/$DESTINATION && \
+                  [ -e ./build ] && rm -rf ./build && \
+                  [ -e ./lib ] && rm -rf ./lib && \
+                  mv org.elastic.jdt.ls.product/distro/jdt-language-server*darwin* lib && \
+                  jq '.version=\"\\(.version)-darwin\"' package.json > tmp && mv tmp package.json && \
+                  echo $KIBANA_VERSION | yarn build && \
+                  aws s3 cp build/java_languageserver-*.zip s3://download.elasticsearch.org/code/java-langserver/$DESTINATION && \
+                  [ -e ./build ] && rm -rf ./build && \
+                  [ -e ./lib ] && rm -rf ./lib && \
+                  mv org.elastic.jdt.ls.product/distro/jdt-language-server*windows* lib && \
+                  jq '.version=\"\\(.version)-windows\"' package.json > tmp && mv tmp package.json && \
+                  echo $KIBANA_VERSION | yarn build && \
+                  aws s3 cp build/java_languageserver-*.zip s3://download.elasticsearch.org/code/java-langserver/$DESTINATION && \
+                  [ -e ./build ] && rm -rf ./build && \
+                  [ -e ./lib ] && rm -rf ./lib"
+                  
