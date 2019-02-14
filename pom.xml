@@ -21,6 +21,8 @@
 		<cbi.jarsigner.skip>true</cbi.jarsigner.skip>
 		<generateSourceRef>true</generateSourceRef>
 		<jdkVersion>11.0.2</jdkVersion>
+		<jdkMajor>11</jdkMajor>
+		<jdkBuild>9</jdkBuild>
 	</properties>
 	<modules>
 		<module>org.elastic.jdt.ls.target</module>

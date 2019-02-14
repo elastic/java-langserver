@@ -41,22 +41,16 @@ docker run \
                   $CMD
                   ./mvnw -DskipTests=true clean deploy -DaltDeploymentRepository=dev::default::file:./repository -B -e -Pserver-distro && \
                   yarn kbn bootstrap && \
-                  mv org.elastic.jdt.ls.product/distro/jdt-language-server*linux* lib && \
-                  jq '.version=\"\\(.version)-linux\"' package.json > tmp && mv tmp package.json && \
-                  echo $KIBANA_VERSION | yarn build && \
-                  aws s3 cp build/java_languageserver-*.zip s3://download.elasticsearch.org/code/java-langserver/$DESTINATION && \
-                  [ -e ./build ] && rm -rf ./build && \
-                  [ -e ./lib ] && rm -rf ./lib && \
-                  mv org.elastic.jdt.ls.product/distro/jdt-language-server*darwin* lib && \
-                  jq '.version=\"\\(.version)-darwin\"' package.json > tmp && mv tmp package.json && \
-                  echo $KIBANA_VERSION | yarn build && \
-                  aws s3 cp build/java_languageserver-*.zip s3://download.elasticsearch.org/code/java-langserver/$DESTINATION && \
-                  [ -e ./build ] && rm -rf ./build && \
-                  [ -e ./lib ] && rm -rf ./lib && \
-                  mv org.elastic.jdt.ls.product/distro/jdt-language-server*windows* lib && \
-                  jq '.version=\"\\(.version)-windows\"' package.json > tmp && mv tmp package.json && \
-                  echo $KIBANA_VERSION | yarn build && \
-                  aws s3 cp build/java_languageserver-*.zip s3://download.elasticsearch.org/code/java-langserver/$DESTINATION && \
-                  [ -e ./build ] && rm -rf ./build && \
-                  [ -e ./lib ] && rm -rf ./lib"
+                  jq '.version=\"\\(.version)-linux\"' package.json > package-linux.json && \
+                  jq '.version=\"\\(.version)-darwin\"' package.json > package-darwin.json && \
+                  jq '.version=\"\\(.version)-windows\"' package.json > package-windows.json && \
+                  for PLATFORM in linux darwin windows
+                  do 
+                      mv org.elastic.jdt.ls.product/distro/jdt-language-server*\$PLATFORM* lib
+                      mv package-\$PLATFORM.json package.json
+                      echo $KIBANA_VERSION | yarn build
+                      aws s3 cp build/java_languageserver-*.zip s3://download.elasticsearch.org/code/java-langserver/$DESTINATION
+                      [ -e ./build ] && rm -rf ./build
+                      [ -e ./lib ] && rm -rf ./lib
+                  done"
                   

@@ -135,7 +135,7 @@
 									<goal>wget</goal>
 								</goals>
 								<configuration>
-									<url>https://download.java.net/java/GA/jdk11/9/GPL/openjdk-${jdkVersion}_osx-x64_bin.tar.gz</url>
+									<url>https://download.java.net/java/GA/jdk${jdkMajor}/${jdkBuild}/GPL/openjdk-${jdkVersion}_osx-x64_bin.tar.gz</url>
 									<unpack>true</unpack>
 									<outputDirectory>${project.build.directory}/jdks/openjdk-${jdkVersion}_osx</outputDirectory>
 								</configuration>
@@ -147,7 +147,7 @@
 									<goal>wget</goal>
 								</goals>
 								<configuration>
-									<url>https://download.java.net/java/GA/jdk11/9/GPL/openjdk-${jdkVersion}_linux-x64_bin.tar.gz</url>
+									<url>https://download.java.net/java/GA/jdk${jdkMajor}/${jdkBuild}/GPL/openjdk-${jdkVersion}_linux-x64_bin.tar.gz</url>
 									<unpack>true</unpack>
 									<outputDirectory>${project.build.directory}/jdks/openjdk-${jdkVersion}_linux</outputDirectory>
 								</configuration>
@@ -159,7 +159,7 @@
 									<goal>wget</goal>
 								</goals>
 								<configuration>
-									<url>https://download.java.net/java/GA/jdk11/9/GPL/openjdk-${jdkVersion}_windows-x64_bin.zip</url>
+									<url>https://download.java.net/java/GA/jdk${jdkMajor}/${jdkBuild}/GPL/openjdk-${jdkVersion}_windows-x64_bin.zip</url>
 									<unpack>true</unpack>
 									<outputDirectory>${project.build.directory}/jdks/openjdk-${jdkVersion}_windows</outputDirectory>
 								</configuration>
