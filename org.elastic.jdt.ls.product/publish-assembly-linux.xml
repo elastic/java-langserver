@@ -8,14 +8,15 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>${basedir}/target/repository</directory>
+      <directory>${basedir}/target</directory>
       <outputDirectory>/</outputDirectory>
       <includes>
-        <include>config_linux/**</include>
-        <include>config_mac/**</include>
-        <include>config_win/**</include>
-        <include>features/**</include>
-        <include>plugins/**</include>
+        <include>repository/config_linux/**</include>
+        <include>repository/config_mac/**</include>
+        <include>repository/config_win/**</include>
+        <include>repository/features/**</include>
+        <include>repository/plugins/**</include>
+        <include>jdks/openjdk-*_linux/**</include>
       </includes>
       <excludes>
         <exclude>**/*.pack.gz</exclude>

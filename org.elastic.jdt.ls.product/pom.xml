@@ -123,6 +123,49 @@
 			</activation>
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.googlecode.maven-download-plugin</groupId>
+						<artifactId>download-maven-plugin</artifactId>
+						<version>1.4.1</version>
+						<executions>
+							<execution>
+								<id>install-openJDK-osx</id>
+								<phase>package</phase>
+								<goals>
+									<goal>wget</goal>
+								</goals>
+								<configuration>
+									<url>https://download.java.net/java/GA/jdk${jdkMajor}/${jdkBuild}/GPL/openjdk-${jdkVersion}_osx-x64_bin.tar.gz</url>
+									<unpack>true</unpack>
+									<outputDirectory>${project.build.directory}/jdks/openjdk-${jdkVersion}_osx</outputDirectory>
+								</configuration>
+							</execution>
+							<execution>
+								<id>install-openJDK-linux</id>
+								<phase>package</phase>
+								<goals>
+									<goal>wget</goal>
+								</goals>
+								<configuration>
+									<url>https://download.java.net/java/GA/jdk${jdkMajor}/${jdkBuild}/GPL/openjdk-${jdkVersion}_linux-x64_bin.tar.gz</url>
+									<unpack>true</unpack>
+									<outputDirectory>${project.build.directory}/jdks/openjdk-${jdkVersion}_linux</outputDirectory>
+								</configuration>
+							</execution>
+							<execution>
+								<id>install-openJDK-windows</id>
+								<phase>package</phase>
+								<goals>
+									<goal>wget</goal>
+								</goals>
+								<configuration>
+									<url>https://download.java.net/java/GA/jdk${jdkMajor}/${jdkBuild}/GPL/openjdk-${jdkVersion}_windows-x64_bin.zip</url>
+									<unpack>true</unpack>
+									<outputDirectory>${project.build.directory}/jdks/openjdk-${jdkVersion}_windows</outputDirectory>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<!-- get major.minor.incremental from this pom, then use ${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion} 
 						to use the x.y.z version without the -SNAPSHOT suffix -->
 					<plugin>
@@ -187,7 +230,7 @@
 						<version>2.6</version>
 						<executions>
 							<execution>
-								<id>pack-for-distribution</id>
+								<id>pack-for-distribution-linux</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -195,11 +238,45 @@
 								<configuration>
 									<outputDirectory>distro</outputDirectory>
 									<!-- define custom output filename -->
-									<finalName>jdt-language-server-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-${timestamp}</finalName>
+									<finalName>jdt-language-server-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-linux-${timestamp}</finalName>
 									<appendAssemblyId>false</appendAssemblyId>
 									<tarLongFileMode>posix</tarLongFileMode>
 									<descriptors>
-										<descriptor>publish-assembly.xml</descriptor>
+										<descriptor>publish-assembly-linux.xml</descriptor>
+									</descriptors>
+								</configuration>
+							</execution>
+							<execution>
+								<id>pack-for-distribution-darwin</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>distro</outputDirectory>
+									<!-- define custom output filename -->
+									<finalName>jdt-language-server-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-darwin-${timestamp}</finalName>
+									<appendAssemblyId>false</appendAssemblyId>
+									<tarLongFileMode>posix</tarLongFileMode>
+									<descriptors>
+										<descriptor>publish-assembly-darwin.xml</descriptor>
+									</descriptors>
+								</configuration>
+							</execution>
+							<execution>
+								<id>pack-for-distribution-windows</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>distro</outputDirectory>
+									<!-- define custom output filename -->
+									<finalName>jdt-language-server-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-windows-${timestamp}</finalName>
+									<appendAssemblyId>false</appendAssemblyId>
+									<tarLongFileMode>posix</tarLongFileMode>
+									<descriptors>
+										<descriptor>publish-assembly-windows.xml</descriptor>
 									</descriptors>
 								</configuration>
 							</execution>

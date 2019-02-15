@@ -3,7 +3,7 @@ set -e
 
 if [ $# -eq 0 ]; then 
     echo "deploy snapshot package.."
-    KIBANA_VERSION=7.0.0
+    KIBANA_VERSION=8.0.0
     DESTINATION=snapshot/
     CMD="./mvnw clean verify -B -e && \\"
 elif [ $# -eq 2 ]; then
@@ -40,6 +40,17 @@ docker run \
     /bin/bash -c "set -x && \
                   $CMD
                   ./mvnw -DskipTests=true clean deploy -DaltDeploymentRepository=dev::default::file:./repository -B -e -Pserver-distro && \
-                  mv org.elastic.jdt.ls.product/distro/jdt-language-server* lib && \
-                  yarn kbn bootstrap && echo $KIBANA_VERSION | yarn build && \
-                  aws s3 cp build/java_languageserver-*.zip s3://download.elasticsearch.org/code/java-langserver/$DESTINATION"
+                  yarn kbn bootstrap && \
+                  jq '.version=\"\\(.version)-linux\"' package.json > package-linux.json && \
+                  jq '.version=\"\\(.version)-darwin\"' package.json > package-darwin.json && \
+                  jq '.version=\"\\(.version)-windows\"' package.json > package-windows.json && \
+                  for PLATFORM in linux darwin windows
+                  do 
+                      mv org.elastic.jdt.ls.product/distro/jdt-language-server*\$PLATFORM* lib
+                      mv package-\$PLATFORM.json package.json
+                      echo $KIBANA_VERSION | yarn build
+                      aws s3 cp build/java_languageserver-*.zip s3://download.elasticsearch.org/code/java-langserver/$DESTINATION
+                      [ -e ./build ] && rm -rf ./build
+                      [ -e ./lib ] && rm -rf ./lib
+                  done"
+                  
