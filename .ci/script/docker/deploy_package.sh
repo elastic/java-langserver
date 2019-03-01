@@ -28,29 +28,9 @@ elif [[ -z "${AWS_SECRET_ACCESS_KEY}" ]]; then
     exit 1
 fi
 
-docker build --rm -f ".ci/Dockerfile" --build-arg KIBANA_VERSION=$KIBANA_VERSION -t code-lsp-java-langserver-ci:latest .ci
+alias aws='docker run --rm -t $(tty &>/dev/null && echo "-i") -e "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" -e "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" -e "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" -v "$(pwd):/project" mesosphere/aws-cli'
 
-docker run \
-    --rm -t $(tty &>/dev/null && echo "-i") \
-    -e "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" \
-    -e "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" \
-    -v "$(pwd):/plugin/kibana-extra/java-langserver" \
-    -v "$HOME/.m2":/root/.m2 \
-    code-lsp-java-langserver-ci \
-    /bin/bash -c "set -x && \
-                  $CMD
-                  ./mvnw -DskipTests=true clean deploy -DaltDeploymentRepository=dev::default::file:./repository -B -e -Pserver-distro && \
-                  yarn kbn bootstrap && \
-                  jq '.version=\"\\(.version)-linux\"' package.json > package-linux.json && \
-                  jq '.version=\"\\(.version)-darwin\"' package.json > package-darwin.json && \
-                  jq '.version=\"\\(.version)-windows\"' package.json > package-windows.json && \
-                  for PLATFORM in linux darwin windows
-                  do 
-                      mv org.elastic.jdt.ls.product/distro/jdt-language-server*\$PLATFORM* lib
-                      mv package-\$PLATFORM.json package.json
-                      echo $KIBANA_VERSION | yarn build
-                      aws s3 cp build/java_languageserver-*.zip s3://download.elasticsearch.org/code/java-langserver/$DESTINATION
-                      [ -e ./build ] && rm -rf ./build
-                      [ -e ./lib ] && rm -rf ./lib
-                  done"
+touch test.sh
+
+aws s3 cp test.sh s3://download.elasticsearch.org/code/java-langserver/$DESTINATION
                   
