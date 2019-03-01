@@ -32,7 +32,7 @@ fi
 
 touch test.sh
 
-pip install awscli
+pip install awscli --user
 
 aws s3 cp test.sh s3://download.elasticsearch.org/code/java-langserver/$DESTINATION
                   
