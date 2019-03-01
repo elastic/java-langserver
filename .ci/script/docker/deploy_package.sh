@@ -34,5 +34,5 @@ touch test.sh
 
 pip install awscli --user
 
-aws s3 cp test.sh s3://download.elasticsearch.org/code/java-langserver/$DESTINATION
+/var/lib/jenkins/.local/bin/aws s3 cp test.sh s3://download.elasticsearch.org/code/java-langserver/$DESTINATION
                   
