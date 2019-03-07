@@ -49,7 +49,7 @@ docker run \
                       mv org.elastic.jdt.ls.product/distro/jdt-language-server*\$PLATFORM* lib
                       mv package-\$PLATFORM.json package.json
                       echo $KIBANA_VERSION | yarn build
-                      aws s3 cp build/java_languageserver-*.zip s3://download.elasticsearch.org/code/java-langserver/$DESTINATION
+                      aws s3 cp build/java-langserver-*.zip s3://download.elasticsearch.org/code/java-langserver/$DESTINATION
                       [ -e ./build ] && rm -rf ./build
                       [ -e ./lib ] && rm -rf ./lib
                   done"
