@@ -5,6 +5,8 @@
  */
 
 import path from 'path';
+import fs from 'fs';
+import { platform } from 'os';
 
 export default function (kibana) {
   return new kibana.Plugin({
@@ -17,6 +19,18 @@ export default function (kibana) {
       }).default();
     },
     init(server) {
+      const jdtConfigPath = path.resolve(server.config().get('path.data'), 'code/jdt_config');
+      if (!fs.existsSync(jdtConfigPath)) {
+        fs.mkdirSync(jdtConfigPath);
+        let configPath = 'config_mac';
+        const osPlatform = platform();
+        if (osPlatform == 'win32') {
+          configPath = 'config_win';
+        } else if (osPlatform == 'linux') {
+          configPath = 'config_linux'
+        }
+        fs.symlinkSync(path.resolve(__dirname, 'lib/repository', configPath, 'config.ini'), path.resolve(jdtConfigPath, 'config.ini'));
+      }
       server.expose('install', {
         path: path.join(__dirname, 'lib'),
       });
