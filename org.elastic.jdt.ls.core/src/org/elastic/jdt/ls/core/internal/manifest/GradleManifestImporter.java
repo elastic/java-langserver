@@ -1,16 +1,34 @@
 package org.elastic.jdt.ls.core.internal.manifest;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.nio.file.Path;
+import java.util.Collection;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.ls.core.internal.AbstractProjectImporter;
-import org.elastic.jdt.ls.core.internal.BasicFileDetector;
+import org.eclipse.jdt.ls.core.internal.managers.BasicFileDetector;
+import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
+
+import org.elastic.jdt.ls.core.internal.manifest.model.Config;
 import org.elastic.jdt.ls.core.internal.JavaLanguageServerPlugin;
-import org.elastic.jdt.ls.core.internal.PreferenceManager;
+
 
 public class GradleManifestImporter extends AbstractProjectImporter {
 	
 	public static final String GRADLE_MANIFEST_FILE = "manifest.json";
+	
+	private static final String IMPORTING_GRADLE_MANIFEST_PROJECTS = "Importing Gradle manifest project(s)";
+	
+	private Collection<Path> directories;
 	
 	@Override
 	public boolean applies(IProgressMonitor monitor) throws OperationCanceledException, CoreException {
@@ -27,7 +45,38 @@ public class GradleManifestImporter extends AbstractProjectImporter {
 	
 	@Override
 	public void importToWorkspace(IProgressMonitor monitor) throws OperationCanceledException, CoreException {
-		
+		if (!applies(monitor)) {
+			return;
+		}
+		SubMonitor subMonitor = SubMonitor.convert(monitor, directories.size() + 1);
+		subMonitor.setTaskName(IMPORTING_GRADLE_MANIFEST_PROJECTS);
+		JavaLanguageServerPlugin.logInfo(IMPORTING_GRADLE_MANIFEST_PROJECTS);
+		subMonitor.worked(1);
+		ProjectCreator pc = new ProjectCreator();
+		for (Path project: directories) {
+			Config config = this.deserializedConfig(project.toString() + "/" + GRADLE_MANIFEST_FILE);
+			config.getProjectInfos().forEach(info -> pc.createJavaProjectFromProjectInfo(project.getFileName().toString(), info, subMonitor.newChild(1)));
+		}
+		subMonitor.done();		
+	}
+
+	
+	private Config deserializedConfig(String file) {
+		 BufferedReader bufferedReader;
+		try {
+			bufferedReader = new BufferedReader(new FileReader(file));
+			Gson gson = new GsonBuilder().create();
+			return gson.fromJson(bufferedReader, Config.class);
+		} catch (FileNotFoundException e) {
+			JavaLanguageServerPlugin.logException("Cannot parse manifest config file: " + file, e);
+		}
+		return null;
+	}
+
+
+	@Override
+	public void reset() {
+		directories = null;
 	}
 
 }

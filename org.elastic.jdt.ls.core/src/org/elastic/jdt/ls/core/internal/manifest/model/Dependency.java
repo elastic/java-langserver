@@ -16,7 +16,7 @@ public class Dependency {
     private String path;
 
     public Dependency(String groupId, String artifactId, String version) {
-        this.setgroupId(groupId);
+        this.setGroupId(groupId);
         this.setArtifactId(artifactId);
         this.setVersion(version);
     }
@@ -28,6 +28,10 @@ public class Dependency {
     public void setPath(String path) {
         this.path = path;
     }
+    
+    public String getPath() {
+    	return path;
+    }
 
     public void setArtifactId(String artifactId) {
         this.artifactId = artifactId;
@@ -37,11 +41,11 @@ public class Dependency {
         return artifactId;
     }
 
-    public void setgroupId(String groupId) {
+    public void setGroupId(String groupId) {
         this.groupId = groupId;
     }
 
-    public String getgroupId() {
+    public String getGroupId() {
         return groupId;
     }
 
