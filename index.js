@@ -10,9 +10,9 @@ import { platform } from 'os';
 
 export default function (kibana) {
   return new kibana.Plugin({
-    id: 'javaLanguageServer',
+    id: 'java-langserver',
     require: ['elasticsearch', 'kibana'],
-    name: 'java_language_server',
+    name: 'java-langserver',
     config(Joi) {
       return Joi.object({
         enabled: Joi.boolean().default(true),
