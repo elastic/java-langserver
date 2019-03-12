@@ -21,6 +21,10 @@ export default function (kibana) {
     init(server) {
       const jdtConfigPath = path.resolve(server.config().get('path.data'), 'code/jdt_config');
       if (!fs.existsSync(jdtConfigPath)) {
+        const codeDataPath = path.dirname(jdtConfigPath);
+        if(!fs.existsSync(codeDataPath)) {
+          fs.mkdirSync(codeDataPath);
+        }
         fs.mkdirSync(jdtConfigPath);
         let configPath = 'config_mac';
         const osPlatform = platform();
