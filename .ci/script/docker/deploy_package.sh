@@ -20,20 +20,10 @@ else
     exit 2
 fi
 
-if [[ -z "${AWS_ACCESS_KEY_ID}" ]]; then
-    echo "AWS_ACCESS_KEY_ID is undefined"
-    exit 1
-elif [[ -z "${AWS_SECRET_ACCESS_KEY}" ]]; then
-    echo "AWS_SECRET_ACCESS_KEY is undefined"
-    exit 1
-fi
-
 docker build --rm -f ".ci/Dockerfile" --build-arg KIBANA_VERSION=$KIBANA_VERSION -t code-lsp-java-langserver-ci:latest .ci
 
 docker run \
     --rm -t $(tty &>/dev/null && echo "-i") \
-    -e "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" \
-    -e "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" \
     -v "$(pwd):/plugin/kibana-extra/java-langserver" \
     -v "$HOME/.m2":/root/.m2 \
     code-lsp-java-langserver-ci \
@@ -49,8 +39,6 @@ docker run \
                       mv org.elastic.jdt.ls.product/distro/jdt-language-server*\$PLATFORM* lib
                       mv package-\$PLATFORM.json package.json
                       echo $KIBANA_VERSION | yarn build
-                      aws s3 cp build/java-langserver-*.zip s3://download.elasticsearch.org/code/java-langserver/$DESTINATION
-                      [ -e ./build ] && rm -rf ./build
                       [ -e ./lib ] && rm -rf ./lib
                   done"
                   
