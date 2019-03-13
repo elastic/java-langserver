@@ -2,6 +2,8 @@ package org.elastic.jdt.ls.core.internal.manifest.model;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 public class Repo {
 	public enum RepoTypes {
@@ -45,7 +47,11 @@ public class Repo {
 
     @Override
     public String toString() {
-        return super.toString();
+    	return new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
+                .append("repoType", repoType)
+                .append("url", url)
+                .append("credentials", credentials)
+                .toString();
     }
 
     @Override

@@ -24,7 +24,6 @@ import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 import org.eclipse.jdt.ls.core.internal.preferences.Preferences;
@@ -39,6 +38,7 @@ import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.elastic.jdt.ls.core.internal.managers.AbstractProjectsManagerBasedTest;
+import org.elastic.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.junit.Before;
 import org.junit.Test;
 

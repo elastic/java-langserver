@@ -3,18 +3,18 @@ package org.elastic.jdt.ls.core.internal;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-import org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer;
 import org.eclipse.lsp4j.jsonrpc.json.JsonRpcMethod;
 import org.eclipse.lsp4j.jsonrpc.json.MessageJsonHandler;
 import org.eclipse.lsp4j.jsonrpc.messages.Message;
 import org.eclipse.lsp4j.jsonrpc.services.ServiceEndpoints;
 
+import org.elastic.jdt.ls.core.internal.ExtendedJDTLanguageServer;
 
 public final class JsonMessageHelper {
 
 	private static MessageJsonHandler handler;
 	static {
-		Map<String, JsonRpcMethod> methods = ServiceEndpoints.getSupportedMethods(JDTLanguageServer.class);
+		Map<String, JsonRpcMethod> methods = ServiceEndpoints.getSupportedMethods(ExtendedJDTLanguageServer.class);
 		handler = new MessageJsonHandler(methods);
 	}
 

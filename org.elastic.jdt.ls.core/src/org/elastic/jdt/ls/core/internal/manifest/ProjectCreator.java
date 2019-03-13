@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -106,7 +107,7 @@ public class ProjectCreator {
         		// local libs
         		allDepsPaths.add(dep.getPath());
         	} else {
-        		Artifact artifact = new DefaultArtifact(dep.getGroupId(), dep.getArtifactId(), null, dep.getVersion());
+        		Artifact artifact = new DefaultArtifact(String.format("%s:%s:%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion()));
     			ArtifactRequest artifactRequest = new ArtifactRequest();
     			artifactRequest.setArtifact(artifact);
     			artifactRequest.setRepositories(ArtifactResolver.newRepositories(system, session, repos));

@@ -29,6 +29,10 @@
          id="importers"
          point="org.eclipse.jdt.ls.core.importers">
          <importer
+            id = "gradleManifestProjectImporter"
+            order ="200"
+            class = "org.elastic.jdt.ls.core.internal.manifest.GradleManifestImporter"/>
+         <importer
          	id = "antProjectImporter"
          	order = "500"
          	class = "org.elastic.jdt.ls.core.internal.AntProjectImporter"/>

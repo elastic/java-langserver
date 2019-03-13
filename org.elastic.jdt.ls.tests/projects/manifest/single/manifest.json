@@ -1,0 +1,27 @@
+{
+    "projectInfos": [
+      {
+        "android": false,
+        "path": ":",
+        "repos": [
+          {
+            "repoType": "MAVEN",
+            "url": "https://repo.maven.apache.org/maven2/"
+          }
+        ],
+        "dependencies": [
+          {
+            "groupId": "org.apache.commons",
+            "artifactId": "commons-lang3",
+            "version": "3.5"
+          }
+        ],
+        "srcDirs": [
+          "src/main/java"
+        ],
+        "testSrcDirs": [
+          "src/test/java"
+        ]
+      }
+    ]
+  }
