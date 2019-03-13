@@ -34,11 +34,15 @@ docker run \
                   jq '.version=\"\\(.version)-linux\"' package.json > package-linux.json && \
                   jq '.version=\"\\(.version)-darwin\"' package.json > package-darwin.json && \
                   jq '.version=\"\\(.version)-windows\"' package.json > package-windows.json && \
+                  mkdir packages
                   for PLATFORM in linux darwin windows
                   do 
                       mv org.elastic.jdt.ls.product/distro/jdt-language-server*\$PLATFORM* lib
                       mv package-\$PLATFORM.json package.json
                       echo $KIBANA_VERSION | yarn build
+                      mv build/java-langserver*.zip packages
                       [ -e ./lib ] && rm -rf ./lib
                   done"
+
+ ls ./packages
                   

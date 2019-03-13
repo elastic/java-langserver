@@ -16,11 +16,10 @@ docker run \
     -v "$(pwd):/plugin/kibana-extra/java-langserver" \
     code-lsp-java-langserver-ci \
     /bin/bash -c "set -x && \
-                  for filename in build/java-langserver-*.zip; do
+                  for filename in packages/java-langserver-*.zip; do
                     if [[ \$filename == *\"SNAPSHOT\"* ]]; then
                         aws s3 cp \$filename s3://download.elasticsearch.org/code/java-langserver/snapshot/
                     else 
                         aws s3 cp \$filename s3://download.elasticsearch.org/code/java-langserver/release/
                     fi
                   done"
-                  
