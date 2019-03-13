@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -32,12 +31,14 @@ import org.eclipse.jdt.launching.JavaRuntime;
 import org.elastic.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.elastic.jdt.ls.core.internal.manifest.model.Dependency;
 import org.elastic.jdt.ls.core.internal.manifest.model.ProjectInfo;
-
+import org.elastic.jdt.ls.core.internal.manifest.model.Repo;
+import org.apache.commons.io.FilenameUtils;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.resolution.ArtifactRequest;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
 
 public class ProjectCreator {
@@ -57,13 +58,13 @@ public class ProjectCreator {
 				setAndroidHome(project.getAndroidSdkVersion(), javaProject, monitor);
 			}
 		
-			List<String> dependencies = retrieveAllDeps(project.getDependencies());
+			List<String> dependencies = retrieveAllDeps(project.getDependencies(), project.getRepos());
 			setClasspath(dependencies, javaProject, monitor);
 
 			javaProject.getProject().refreshLocal(IResource.DEPTH_INFINITE, monitor);
 			return javaProject;
 		}
-		catch (CoreException ce) {
+		catch (CoreException | ArtifactResolutionException ce) {
 			JavaLanguageServerPlugin.logException("Failed to create the java project depending on info" + project.toString(), ce);
 			return null;
 		}
@@ -93,13 +94,13 @@ public class ProjectCreator {
 		addVariableEntry(javaProject, new Path("ANDROID_HOME/platforms/" + version + "/android.jar"), new Path("ANDROID_HOME/sources/" + version), null, monitor);
 	}
 	
-	private List<String> retrieveAllDeps(List<Dependency> deps) {
+	private List<String> retrieveAllDeps(List<Dependency> deps, List<Repo> repos) throws ArtifactResolutionException {
 		ArrayList<String> allDepsPaths = new ArrayList();
 		
 		RepositorySystem system = ArtifactResolver.newRepositorySystem();
         RepositorySystemSession session = ArtifactResolver.newRepositorySystemSession(system);
         
-        ArrayList<artifactRequest> artifactRequests = new ArrayList();
+        ArrayList<ArtifactRequest> artifactRequests = new ArrayList();
         for (Dependency dep: deps) {
         	if (dep.getPath() != null) {
         		// local libs
@@ -108,7 +109,7 @@ public class ProjectCreator {
         		Artifact artifact = new DefaultArtifact(dep.getGroupId(), dep.getArtifactId(), null, dep.getVersion());
     			ArtifactRequest artifactRequest = new ArtifactRequest();
     			artifactRequest.setArtifact(artifact);
-    			artifactRequest.setRepositories(ArtifactResolver.newRepositories(system, session));
+    			artifactRequest.setRepositories(ArtifactResolver.newRepositories(system, session, repos));
     			artifactRequests.add(artifactRequest);
         	}
         }
@@ -116,7 +117,7 @@ public class ProjectCreator {
         
         artifactResults.forEach(r -> {
         	Artifact artifact = r.getArtifact();
-        	if (artifact.getFile().getExtension() == "aar") {
+        	if (FilenameUtils.getExtension(artifact.getFile().getName()) == "aar") {
         		// extract all *.aar to jar
         		explodeAarJarFiles(artifact.getFile(), String.format("%s-%s-%s", artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion())).forEach(allDepsPaths::add);
         	} else {
