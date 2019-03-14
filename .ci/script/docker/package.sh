@@ -20,14 +20,6 @@ else
     exit 2
 fi
 
-if [[ -z "${AWS_ACCESS_KEY_ID}" ]]; then
-    echo "AWS_ACCESS_KEY_ID is undefined"
-    exit 1
-elif [[ -z "${AWS_SECRET_ACCESS_KEY}" ]]; then
-    echo "AWS_SECRET_ACCESS_KEY is undefined"
-    exit 1
-fi
-
 # alias aws='docker run --rm -t $(tty &>/dev/null && echo "-i") -e "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" -e "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" -e "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" -v "$(pwd):/project" mesosphere/aws-cli'
 
 touch test.sh
