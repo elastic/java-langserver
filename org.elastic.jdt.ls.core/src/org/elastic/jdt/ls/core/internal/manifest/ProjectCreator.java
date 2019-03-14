@@ -3,9 +3,11 @@ package org.elastic.jdt.ls.core.internal.manifest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -16,6 +18,7 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -34,6 +37,7 @@ import org.elastic.jdt.ls.core.internal.manifest.model.Dependency;
 import org.elastic.jdt.ls.core.internal.manifest.model.ProjectInfo;
 import org.elastic.jdt.ls.core.internal.manifest.model.Repo;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
@@ -43,13 +47,24 @@ import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
 
 public class ProjectCreator {
+	
+	private java.nio.file.Path currentDir;
 
-	public IJavaProject createJavaProjectFromProjectInfo(String projectName, ProjectInfo project, IProgressMonitor monitor) {
+	public IJavaProject createJavaProjectFromProjectInfo(String projectName, java.nio.file.Path dir, ProjectInfo project, IProgressMonitor monitor) {
 		try {
+			currentDir = dir.resolve("." + project.getPath().replaceAll(":", "/"));
 			IJavaProject javaProject = createJavaProject(projectName, monitor);
 
 			List<String> sourceDirs = project.getSrcDirs();
-			createSourceDirectories(sourceDirs, javaProject, monitor);
+			List<String> testSourceDirs = project.getTestSrcDirs();
+			
+			if (sourceDirs != null) {
+				createSourceDirectories(sourceDirs, javaProject, monitor);
+			}
+			
+			if (testSourceDirs != null) {
+				createSourceDirectories(testSourceDirs, javaProject, monitor);
+			}
 
 			// add rt.jar
 			addVariableEntry(javaProject, new Path(JavaRuntime.JRELIB_VARIABLE), new Path(JavaRuntime.JRESRC_VARIABLE), new Path(JavaRuntime.JRESRCROOT_VARIABLE), monitor);
@@ -58,28 +73,35 @@ public class ProjectCreator {
 			if (project.isAndroid()) {
 				setAndroidHome(project.getAndroidSdkVersion(), javaProject, monitor);
 			}
-		
-			List<String> dependencies = retrieveAllDeps(project.getDependencies(), project.getRepos());
-			setClasspath(dependencies, javaProject, monitor);
+			
+			if (project.getDependencies() != null) {
+				List<Pair<String, String>> dependencies = retrieveAllDeps(project.getDependencies(), project.getRepos());
+				setClasspath(dependencies, javaProject, monitor);
+			}
 
 			javaProject.getProject().refreshLocal(IResource.DEPTH_INFINITE, monitor);
+			
 			return javaProject;
 		}
-		catch (CoreException | ArtifactResolutionException ce) {
+		catch (CoreException ce) {
 			JavaLanguageServerPlugin.logException("Failed to create the java project depending on info" + project.toString(), ce);
 			return null;
 		}
 	}
 
-	private void setClasspath(List<String> dependencies, IJavaProject javaProject, IProgressMonitor monitor) throws CoreException {
+	private void setClasspath(List<Pair<String, String>> dependencies, IJavaProject javaProject, IProgressMonitor monitor) throws CoreException {
 		if (dependencies.size() == 0) {
 			return;
 		}
 		for (int i = 0; i < dependencies.size(); i++) {
-			String cp = dependencies.get(i);
+			String cp = dependencies.get(i).getLeft();
 			File classpathEntry = new File(cp);
 			if (classpathEntry.isFile()) {
-				addLibrary(javaProject, new Path(classpathEntry.getAbsolutePath()), monitor);
+				if (dependencies.get(i).getRight() != null) {
+					addLibrary(javaProject, new Path(classpathEntry.getAbsolutePath()), new Path(new File(dependencies.get(i).getRight()).getAbsolutePath()), monitor);
+				} else {
+					addLibrary(javaProject, new Path(classpathEntry.getAbsolutePath()), null, monitor);
+				}
 			} else {
 				addContainer(javaProject, new Path(classpathEntry.getAbsolutePath()), monitor);
 			}
@@ -95,43 +117,54 @@ public class ProjectCreator {
 		addVariableEntry(javaProject, new Path("ANDROID_HOME/platforms/" + version + "/android.jar"), new Path("ANDROID_HOME/sources/" + version), null, monitor);
 	}
 	
-	private List<String> retrieveAllDeps(List<Dependency> deps, List<Repo> repos) throws ArtifactResolutionException {
-		ArrayList<String> allDepsPaths = new ArrayList();
+	private List<Pair<String, String>> retrieveAllDeps(List<Dependency> deps, List<Repo> repos) {
+		ArrayList<Pair<String, String>> allDepsPaths = new ArrayList();
 		
 		RepositorySystem system = ArtifactResolver.newRepositorySystem();
         RepositorySystemSession session = ArtifactResolver.newRepositorySystemSession(system);
         
         ArrayList<ArtifactRequest> artifactRequests = new ArrayList();
+        ArtifactRequest artifactRequest = new ArtifactRequest();
+        artifactRequest.setRepositories(ArtifactResolver.newRepositories(system, session, repos));
         for (Dependency dep: deps) {
+            File artifactFile = null;
         	if (dep.getPath() != null) {
         		// local libs
-        		allDepsPaths.add(dep.getPath());
+        		allDepsPaths.add(Pair.of(dep.getPath(), null));
         	} else {
-        		Artifact artifact = new DefaultArtifact(String.format("%s:%s:%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion()));
-    			ArtifactRequest artifactRequest = new ArtifactRequest();
-    			artifactRequest.setArtifact(artifact);
-    			artifactRequest.setRepositories(ArtifactResolver.newRepositories(system, session, repos));
-    			artifactRequests.add(artifactRequest);
+        		try {
+	        		Artifact artifact = new DefaultArtifact(String.format("%s:%s:%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion()));
+	    			artifactRequest.setArtifact(artifact);
+	    			ArtifactResult artifactResult = system.resolveArtifact(session, artifactRequest);
+	    			artifactFile = artifactResult.getArtifact().getFile();
+	    			if (FilenameUtils.getExtension(artifactFile.getName()) == "aar") {
+	            		// extract all *.aar to jar
+	            		explodeAarJarFiles(artifactFile, String.format("%s-%s-%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion())).forEach(allDepsPaths::add);
+	            	} else {
+	            		Artifact sourceArtifact = new DefaultArtifact(String.format("%s:%s:jar:sources:%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion()));
+	            		artifactRequest.setArtifact(sourceArtifact);
+	            		ArtifactResult sourceArtifactResult = system.resolveArtifact(session, artifactRequest);
+	            		allDepsPaths.add(Pair.of(artifactFile.getPath(), sourceArtifactResult.getArtifact().getFile().getPath()));
+	            	}
+        		} catch (ArtifactResolutionException e) {
+        			if (artifactFile != null) {
+        				if (FilenameUtils.getExtension(artifactFile.getName()) == "aar") {
+    	            		// extract all *.aar to jar
+    	            		explodeAarJarFiles(artifactFile, String.format("%s-%s-%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion())).forEach(allDepsPaths::add);
+    	            	} else {
+    	            		allDepsPaths.add(Pair.of(artifactFile.getPath(), null));
+    	            	}
+        			}
+        		}
         	}
         }
-        List<ArtifactResult> artifactResults = system.resolveArtifacts(session, artifactRequests);
-        
-        artifactResults.forEach(r -> {
-        	Artifact artifact = r.getArtifact();
-        	if (FilenameUtils.getExtension(artifact.getFile().getName()) == "aar") {
-        		// extract all *.aar to jar
-        		explodeAarJarFiles(artifact.getFile(), String.format("%s-%s-%s", artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion())).forEach(allDepsPaths::add);
-        	} else {
-        		allDepsPaths.add(artifact.getFile().getPath());
-        	}
-        });
      
         return allDepsPaths;
 	}
 	
 	// @see com.greensopinion.gradle.android.eclipse.GenerateLibraryDependenciesAction#explodeAarJarFiles
-	private Stream<String> explodeAarJarFiles(File aarFile, String jarId) {
-		File targetFolder = new File(new File(new File(ResourcesPlugin.getWorkspace().getRoot().getFullPath().toString(), "build"), "exploded-aars"), jarId);
+	private Stream<Pair<String, String>> explodeAarJarFiles(File aarFile, String jarId) {
+		File targetFolder = new File(new File(new File(currentDir.toAbsolutePath().toString(), "build"), "exploded-aars"), jarId);
 		if (!targetFolder.exists()) {
 			if (!targetFolder.mkdirs()) {
 				JavaLanguageServerPlugin.logError("Cannot create folder: " + targetFolder.getAbsolutePath());
@@ -154,7 +187,7 @@ public class ProjectCreator {
 			}
 		}
 		List<File> files = listFilesTraversingFolders(targetFolder);
-		return files.stream().filter(f -> f.getName().endsWith(".jar")).map(f -> f.getPath()); 
+		return files.stream().filter(f -> f.getName().endsWith(".jar")).map(f -> Pair.of(f.getPath(), null)); 
 	}
 	
 	private List<File> listFilesTraversingFolders(File folder) {
@@ -192,17 +225,23 @@ public class ProjectCreator {
 	private void createSourceDirectories(List<String> sourceDirs, IJavaProject javaProject, IProgressMonitor monitor) throws CoreException {
 		for (int i = 0; i < sourceDirs.size(); i++) {
 			String srcDir = sourceDirs.get(i);
-			File srcDirectory = new File(srcDir);
-			String srcDirectoryName = srcDirectory.getName();
-			addSourceContainer(javaProject, srcDirectoryName, srcDir, srcDirectoryName, srcDir, monitor);
+			if (currentDir.resolve(srcDir).toFile().exists()) {
+				addSourceContainer(javaProject, srcDir, srcDir, "bin", "bin", monitor);
+			}
 		}
 	}
 
 	private IJavaProject createJavaProject(String projectName, IProgressMonitor monitor) throws CoreException {
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+		IWorkspace workspace = ResourcesPlugin.getWorkspace();
+
 		IProject project = root.getProject(projectName);
+		IProjectDescription description = workspace.newProjectDescription(project.getName());
+		
+		description.setLocationURI(currentDir.toUri());
+		
 		if (!project.exists()) {
-			project.create(monitor);
+			project.create(description, monitor);
 		} else {
 			project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 		}
@@ -288,8 +327,8 @@ public class ProjectCreator {
 	/**
 	 * Adds a library entry to an IJavaProject.
 	 */
-	private void addLibrary(IJavaProject jproject, IPath path, IProgressMonitor monitor) throws JavaModelException {
-		IClasspathEntry cpe = JavaCore.newLibraryEntry(path, null, null);
+	private void addLibrary(IJavaProject jproject, IPath path, IPath sourcePath, IProgressMonitor monitor) throws JavaModelException {
+		IClasspathEntry cpe = JavaCore.newLibraryEntry(path, sourcePath, null);
 		addToClasspath(jproject, cpe, monitor);
 	}
 

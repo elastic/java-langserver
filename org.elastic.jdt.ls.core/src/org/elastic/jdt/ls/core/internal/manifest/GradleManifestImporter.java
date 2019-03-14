@@ -13,7 +13,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.SubMonitor;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.ls.core.internal.AbstractProjectImporter;
 import org.eclipse.jdt.ls.core.internal.managers.BasicFileDetector;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
@@ -53,9 +52,22 @@ public class GradleManifestImporter extends AbstractProjectImporter {
 		JavaLanguageServerPlugin.logInfo(IMPORTING_GRADLE_MANIFEST_PROJECTS);
 		subMonitor.worked(1);
 		ProjectCreator pc = new ProjectCreator();
-		for (Path project: directories) {
-			Config config = this.deserializedConfig(project.toString() + "/" + GRADLE_MANIFEST_FILE);
-			config.getProjectInfos().forEach(info -> pc.createJavaProjectFromProjectInfo(project.getFileName().toString(), info, subMonitor.newChild(1)));
+		for (Path projectDir: directories) {
+			Config config = this.deserializedConfig(projectDir.toString() + "/" + GRADLE_MANIFEST_FILE);
+			config.getProjectInfos().forEach(info -> {
+				String projectName;
+				if (":".equals(info.getPath())) {
+					projectName = projectDir.getParent().getFileName().toString();
+				} else {
+					projectName = info.getPath().substring(info.getPath().lastIndexOf(":") + 1);
+				}
+				
+				pc.createJavaProjectFromProjectInfo(
+					projectName,
+					projectDir,
+					info,
+					subMonitor.newChild(1));
+				});
 		}
 		subMonitor.done();		
 	}

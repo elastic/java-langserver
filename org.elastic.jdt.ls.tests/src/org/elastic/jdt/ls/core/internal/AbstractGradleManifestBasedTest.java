@@ -13,7 +13,7 @@ import org.elastic.jdt.ls.core.internal.managers.AbstractProjectsManagerBasedTes
 public class AbstractGradleManifestBasedTest extends AbstractProjectsManagerBasedTest {
 	protected IProject importGradleManifestProject(String name) throws Exception {
 		importProjects("manifest/" + name);
-		IProject project = getProject(name);
+		IProject project = getProject("manifest");
 		assertNotNull(project);
 		return project;
 	}
