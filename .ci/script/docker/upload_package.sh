@@ -9,6 +9,8 @@ elif [[ -z "${AWS_SECRET_ACCESS_KEY}" ]]; then
     exit 1
 fi
 
+sleep 10
+
 docker run \
     --rm -t $(tty &>/dev/null && echo "-i") \
     -e "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" \
