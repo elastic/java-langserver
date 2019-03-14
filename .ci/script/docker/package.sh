@@ -31,8 +31,4 @@ fi
 # alias aws='docker run --rm -t $(tty &>/dev/null && echo "-i") -e "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" -e "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" -e "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" -v "$(pwd):/project" mesosphere/aws-cli'
 
 touch test.sh
-
-pip install awscli --user
-
-/var/lib/jenkins/.local/bin/aws s3 cp test.sh s3://download.elasticsearch.org/code/java-langserver/$DESTINATION
                   
