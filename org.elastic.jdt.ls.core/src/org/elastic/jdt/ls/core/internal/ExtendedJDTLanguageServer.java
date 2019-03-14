@@ -15,6 +15,7 @@ import org.eclipse.jdt.ls.core.internal.handlers.DocumentLifeCycleHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer;
 import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
+import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.elastic.jdt.ls.core.internal.EDefinitionHandler;
 import org.eclipse.lsp4j.DidChangeWorkspaceFoldersParams;
 import org.eclipse.lsp4j.Hover;
@@ -32,9 +33,9 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 	private PreferenceManager preferenceManager;
 
 	public ExtendedJDTLanguageServer(ProjectsManager projects, PreferenceManager preferenceManager) {
-		super(projects, preferenceManager);
-		this.pm = projects;
-		this.preferenceManager = preferenceManager;
+		super(JavaLanguageServerPlugin.getProjectsManager(), JavaLanguageServerPlugin.getPreferencesManager());
+		this.pm = JavaLanguageServerPlugin.getProjectsManager();
+		this.preferenceManager = JavaLanguageServerPlugin.getPreferencesManager();
 	}
 
 	@Override
