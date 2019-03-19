@@ -1,6 +1,7 @@
 package org.elastic.jdt.ls.core.internal;
 
 import java.util.List;
+import java.lang.Exception;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
@@ -26,9 +27,13 @@ public class EDefinitionHandler extends NavigateToDefinitionHandler {
 	}
 
 	public SymbolLocator eDefinition(TextDocumentPositionParams position, IProgressMonitor monitor) {
-		List<? extends Location> locations = this.definition(position, monitor);
-		if (locations != null) {
-			return new SymbolLocator(locations.get(0));
+		try {
+			List<? extends Location> locations = this.definition(position, monitor);
+			if (locations != null && locations.size() > 0) {
+				return new SymbolLocator(locations.get(0));
+			}
+		} catch (Exception e) {
+			// ignore
 		}
 		ITypeRoot unit = JDTUtils.resolveTypeRoot(position.getTextDocument().getUri());
 		try {
