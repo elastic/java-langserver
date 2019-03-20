@@ -70,7 +70,7 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 	@Override
 	public void exit() {
 		logInfo(">> exit");
-		JavaLanguageServerPlugin.getLanguageServer().exit();
+		org.elastic.jdt.ls.core.internal.JavaLanguageServerPlugin.getLanguageServer().exit();
 		Executors.newSingleThreadScheduledExecutor().schedule(() -> {
 			logInfo("Forcing exit after 1 min.");
 			System.exit(FORCED_EXIT_CODE);
