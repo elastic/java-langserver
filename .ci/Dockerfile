@@ -12,7 +12,7 @@ RUN echo "===> Cloning Kibana v$KIBANA_VERSION" \
 WORKDIR /plugin/kibana
 
 RUN set -ex && \
-yarn kbn bootstrap && \
+yarn kbn bootstrap --allow-root && \
 wget -O get-pip.py 'https://bootstrap.pypa.io/get-pip.py' && \
 python get-pip.py \
 		--disable-pip-version-check \
