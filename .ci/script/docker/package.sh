@@ -20,7 +20,28 @@ else
     exit 2
 fi
 
-# alias aws='docker run --rm -t $(tty &>/dev/null && echo "-i") -e "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" -e "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" -e "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" -v "$(pwd):/project" mesosphere/aws-cli'
+docker build --rm -f ".ci/Dockerfile" --build-arg KIBANA_VERSION=$KIBANA_VERSION -t code-lsp-java-langserver-ci:latest .ci
 
-touch test.sh
-                  
+docker run \
+    --rm -t $(tty &>/dev/null && echo "-i") \
+    -v "$(pwd):/plugin/kibana-extra/java-langserver" \
+    -v "$HOME/.m2":/root/.m2 \
+    code-lsp-java-langserver-ci \
+    /bin/bash -c "set -x && \
+                  $CMD
+                  ./mvnw -DskipTests=true clean deploy -DaltDeploymentRepository=dev::default::file:./repository -B -e -Pserver-distro && \
+                  yarn kbn bootstrap && \
+                  jq '.version=\"\\(.version)-linux\"' package.json > package-linux.json && \
+                  jq '.version=\"\\(.version)-darwin\"' package.json > package-darwin.json && \
+                  jq '.version=\"\\(.version)-windows\"' package.json > package-windows.json && \
+                  mkdir packages
+                  for PLATFORM in linux darwin windows
+                  do 
+                      mv org.elastic.jdt.ls.product/distro/jdt-language-server*\$PLATFORM* lib
+                      mv package-\$PLATFORM.json package.json
+                      echo $KIBANA_VERSION | yarn build
+                      mv build/java-langserver*.zip packages
+                      [ -e ./lib ] && rm -rf ./lib
+                  done"
+
+ ls ./packages

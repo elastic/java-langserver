@@ -1,10 +1,10 @@
-FROM node:10.15.1
+FROM node:10.15.2
 
 ARG KIBANA_VERSION
 
 WORKDIR /plugin
 
-USER root
+USER node
 
 RUN echo "===> Cloning Kibana v$KIBANA_VERSION" \
   && git clone --depth 1 -b master https://github.com/elastic/kibana.git
