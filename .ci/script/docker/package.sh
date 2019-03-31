@@ -30,11 +30,12 @@ docker run \
     /bin/bash -c "set -x && \
                   $CMD
                   ./mvnw -DskipTests=true clean deploy -DaltDeploymentRepository=dev::default::file:./repository -B -e -Pserver-distro && \
+                  su node -c \"touch 1\" && \
                   su node -c \"yarn kbn bootstrap\" && \
                   jq '.version=\"\\(.version)-linux\"' package.json > package-linux.json && \
                   jq '.version=\"\\(.version)-darwin\"' package.json > package-darwin.json && \
                   jq '.version=\"\\(.version)-windows\"' package.json > package-windows.json && \
-                  mkdir packages
+                  mkdir packages && \
                   for PLATFORM in linux darwin windows
                   do 
                       mv org.elastic.jdt.ls.product/distro/jdt-language-server*\$PLATFORM* lib
