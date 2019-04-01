@@ -5,12 +5,11 @@ ARG KIBANA_VERSION
 WORKDIR /plugin
 
 RUN echo "===> Cloning Kibana v$KIBANA_VERSION" \
-  && git clone --depth 1 -b master https://github.com/elastic/kibana.git
+  && git clone --depth 1 https://github.com/elastic/kibana/tree/2f9ad0a814aa7d69da29f3bbf362ca019d792049
 
 WORKDIR /plugin/kibana
 
 RUN set -ex && \
-git reset --hard 2f9ad0a814aa7d69da29f3bbf362ca019d792049 && \
 yarn kbn bootstrap && \
 wget -O get-pip.py 'https://bootstrap.pypa.io/get-pip.py' && \
 python get-pip.py \
