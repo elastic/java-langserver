@@ -28,7 +28,7 @@ docker run \
     -v "$HOME/.m2":/root/.m2 \
     code-lsp-java-langserver-ci \
     /bin/bash -c "set -x && \
-                  chown -R node:node /var/lib/jenkins && \
+                  chown -R node:node /var && \
                   chown -R node:node /plugin && \
                   su node -c \"yarn kbn bootstrap\" && \
                   jq '.version=\"\\(.version)-linux\"' package.json > package-linux.json && \
