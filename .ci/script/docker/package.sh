@@ -24,7 +24,7 @@ docker build --rm -f ".ci/Dockerfile" --build-arg KIBANA_VERSION=$KIBANA_VERSION
 
 docker run \
     --rm -t $(tty &>/dev/null && echo "-i") \
-    -v "$(pwd):/plugin/kibana-extra/java-langserver" \
+    -v "$(pwd):/home/node/plugin/kibana-extra/java-langserver" \
     -v "$HOME/.m2":/root/.m2 \
     code-lsp-java-langserver-ci \
     /bin/bash -c "set -x && \
