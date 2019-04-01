@@ -28,7 +28,6 @@ docker run \
     -v "$HOME/.m2":/root/.m2 \
     code-lsp-java-langserver-ci \
     /bin/bash -c "set -x && \
-                  usermod -aG sudo node && \
                   su node -c \"sudo yarn kbn bootstrap\" && \
                   jq '.version=\"\\(.version)-linux\"' package.json > package-linux.json && \
                   jq '.version=\"\\(.version)-darwin\"' package.json > package-darwin.json && \
