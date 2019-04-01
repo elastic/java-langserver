@@ -23,7 +23,7 @@ echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 USER node
 
-RUN yarn kbn bootstrap
+RUN sudo yarn kbn bootstrap
 
 USER root
 
