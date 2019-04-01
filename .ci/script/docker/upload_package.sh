@@ -15,7 +15,7 @@ docker run \
     --rm -t $(tty &>/dev/null && echo "-i") \
     -e "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" \
     -e "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" \
-    -v "$(pwd):/home/node/plugin/kibana-extra/java-langserver" \
+    -v "$(pwd):/plugin/kibana-extra/java-langserver" \
     code-lsp-java-langserver-ci \
     /bin/bash -c "set -x && \
                   for filename in packages/java-langserver-*.zip; do

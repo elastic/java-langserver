@@ -24,13 +24,14 @@ docker build --rm -f ".ci/Dockerfile" --build-arg KIBANA_VERSION=$KIBANA_VERSION
 
 docker run \
     --rm -t $(tty &>/dev/null && echo "-i") \
-    -v "$(pwd):/home/node/plugin/kibana-extra/java-langserver" \
+    -v "$(pwd):/plugin/kibana-extra/java-langserver" \
     -v "$HOME/.m2":/root/.m2 \
     code-lsp-java-langserver-ci \
     /bin/bash -c "set -x && \
                   $CMD
                   ./mvnw -DskipTests=true clean deploy -DaltDeploymentRepository=dev::default::file:./repository -B -e -Pserver-distro && \
-                  yarn kbn bootstrap && \
+                  chown -R node:node /plugin && \
+                  su node -c \"yarn kbn bootstrap\" && \
                   jq '.version=\"\\(.version)-linux\"' package.json > package-linux.json && \
                   jq '.version=\"\\(.version)-darwin\"' package.json > package-darwin.json && \
                   jq '.version=\"\\(.version)-windows\"' package.json > package-windows.json && \
