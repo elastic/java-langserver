@@ -15,7 +15,7 @@ python get-pip.py \
 		--disable-pip-version-check \
 		--no-cache-dir && \
 rm -f get-pip.py && \
-apt-get update && apt-get install -y openjdk-8-jdk jq make python-dev && \
+apt-get update && apt-get install -y openjdk-8-jdk jq make python-dev sudo && \
 pip install --upgrade awscli==1.14.5 s3cmd==2.0.1 python-magic && \
 update-java-alternatives --jre-headless --jre --set java-1.8.0-openjdk-amd64 && \
 chown -R node:node /plugin
