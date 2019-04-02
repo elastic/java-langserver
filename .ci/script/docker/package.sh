@@ -30,7 +30,7 @@ docker run \
     /bin/bash -c "set -x && \
                   $CMD
                   ./mvnw -DskipTests=true clean deploy -DaltDeploymentRepository=dev::default::file:./repository -B -e -Pserver-distro && \
-                  yarn kbn bootstrap --allow-root && \
+                  yarn && \
                   jq '.version=\"\\(.version)-linux\"' package.json > package-linux.json && \
                   jq '.version=\"\\(.version)-darwin\"' package.json > package-darwin.json && \
                   jq '.version=\"\\(.version)-windows\"' package.json > package-windows.json && \
