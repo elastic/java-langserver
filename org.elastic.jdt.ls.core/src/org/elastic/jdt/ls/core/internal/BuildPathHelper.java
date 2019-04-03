@@ -26,13 +26,11 @@ public class BuildPathHelper {
 		List<InfoRecorder> children = new ArrayList<InfoRecorder>();
 	}
 	
-	private final File rootFolder;
 	private final InfoRecorder rootInfoRecorder;
 	
 	public BuildPathHelper(IPath rootPath) {
-		this.rootFolder = rootPath.toFile();
 		this.rootInfoRecorder = new InfoRecorder();
-		this.rootInfoRecorder.dir = this.rootFolder;
+		this.rootInfoRecorder.dir = rootPath.toFile();;
 		crawler(rootInfoRecorder);
 	}
 	
