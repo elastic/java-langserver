@@ -30,7 +30,6 @@ docker run \
     /bin/bash -c "set -x && \
                   $CMD
                   ./mvnw -DskipTests=true clean deploy -DaltDeploymentRepository=dev::default::file:./repository -B -e -Pserver-distro && \
-                  yarn && \
                   jq '.version=\"\\(.version)-linux\"' package.json > package-linux.json && \
                   jq '.version=\"\\(.version)-darwin\"' package.json > package-darwin.json && \
                   jq '.version=\"\\(.version)-windows\"' package.json > package-windows.json && \
@@ -39,7 +38,7 @@ docker run \
                   do 
                       mv org.elastic.jdt.ls.product/distro/jdt-language-server*\$PLATFORM* lib
                       mv package-\$PLATFORM.json package.json
-                      echo $KIBANA_VERSION | yarn build
+                      echo $KIBANA_VERSION | ../../kibana/packages/kbn-plugin-helpers/bin/plugin-helpers.js build
                       mv build/java-langserver*.zip packages
                       [ -e ./lib ] && rm -rf ./lib
                   done"
