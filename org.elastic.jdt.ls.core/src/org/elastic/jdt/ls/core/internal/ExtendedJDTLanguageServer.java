@@ -2,6 +2,7 @@ package org.elastic.jdt.ls.core.internal;
 
 import static org.elastic.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +20,8 @@ import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.elastic.jdt.ls.core.internal.EDefinitionHandler;
 import org.eclipse.lsp4j.DidChangeWorkspaceFoldersParams;
 import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.ReferenceParams;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.CompletableFutures;
@@ -50,6 +53,13 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 		logInfo(">> document/hover");
 		ExtendedHoverHandler handler = new ExtendedHoverHandler(this.preferenceManager);
 		return computeAsync((monitor) -> handler.extendedHover(position, monitor));
+	}
+	
+	@Override
+	public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
+		logInfo(">> document/references");
+		ExtendedReferencesHandler handler = new ExtendedReferencesHandler(this.preferenceManager);
+		return computeAsync((monitor) -> handler.findReferences(params, monitor));
 	}
 	
 	@JsonRequest(value = "textDocument/full", useSegment = false)
