@@ -13,12 +13,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.ProjectUtils;
-import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 
 public class BuildPathHelper {
 	
@@ -29,12 +27,10 @@ public class BuildPathHelper {
 	}
 	
 	private final File rootFolder;
-	private final IJavaProject project;
 	private final InfoRecorder rootInfoRecorder;
 	
 	public BuildPathHelper(IPath rootPath) {
 		this.rootFolder = rootPath.toFile();
-		this.project = JavaCore.create(findBelongedProject(rootPath));
 		this.rootInfoRecorder = new InfoRecorder();
 		this.rootInfoRecorder.dir = this.rootFolder;
 		crawler(rootInfoRecorder);
@@ -46,14 +42,17 @@ public class BuildPathHelper {
 		if (listOfFilesAndDirectory != null)
 		{
 			for (File file : listOfFilesAndDirectory)
-			{
+			{	
+				if (FilenameUtils.getName(file.toString()).startsWith(".")) {
+					continue;
+				}
 				if (file.isDirectory()) {
-					InfoRecorder childInfoRecorder = new InfoRecorder();
-					childInfoRecorder.dir = file;
-					infoRecorder.children.add(childInfoRecorder);
 					if (inBuildPath(file)) {
-						childInfoRecorder.shouldBeIncluded = true;
+						//
 					} else {
+						InfoRecorder childInfoRecorder = new InfoRecorder();
+						childInfoRecorder.dir = file;
+						infoRecorder.children.add(childInfoRecorder);
 						crawler(childInfoRecorder);
 					}
 				} else if ("java".equals(FilenameUtils.getExtension(file.getName()))) {
@@ -61,7 +60,7 @@ public class BuildPathHelper {
 				}
 			}
 		}
-		if (!infoRecorder.shouldBeIncluded) {
+		if (!infoRecorder.children.isEmpty() && !infoRecorder.shouldBeIncluded) {
 			boolean childrenAllIncluded = true;
 			for (InfoRecorder child: infoRecorder.children) {
 				childrenAllIncluded &= child.shouldBeIncluded;
@@ -78,8 +77,12 @@ public class BuildPathHelper {
 	// top-down
 	private void includeJavaFiles(InfoRecorder infoRecorder) {
 		if (infoRecorder.shouldBeIncluded) {
+			IPath path = new Path(infoRecorder.dir.getPath());
+			IProject project = findBelongedProject(path);
+			IPath relativeSourcePath = path.makeRelativeTo(project.getLocation());
+			IPath sourcePath = relativeSourcePath.isEmpty() ? project.getFullPath() : project.getFolder(relativeSourcePath).getFullPath();
 			try {
-				ProjectUtils.addSourcePath(new Path(infoRecorder.dir.getPath()), new IPath[0], this.project);
+				ProjectUtils.addSourcePath(sourcePath, new IPath[0], JavaCore.create(project));
 			} catch (CoreException e) {
 				// TODO Auto-generated catch block
 				JavaLanguageServerPlugin.logException("Fail to add source:" + infoRecorder.dir.getPath(), e);
@@ -90,13 +93,21 @@ public class BuildPathHelper {
 	}
 	
 	
-	private boolean inBuildPath(File path) {
+	private boolean inBuildPath(File file) {
+		IPath path = new Path(file.getPath());
+		IProject project = findBelongedProject(path);
+		if (project == null) {
+			return false;
+		}
 		IClasspathEntry[] existingEntries;
 		try {
-			existingEntries = project.getRawClasspath();
+			existingEntries = JavaCore.create(project).getRawClasspath();
 			for (IClasspathEntry entry : existingEntries) {
 				if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-					if (entry.getPath().toFile().equals(path)) {
+					IPath relativeSourcePath = path.makeRelativeTo(project.getLocation());
+					IPath sourcePath = relativeSourcePath.isEmpty() ? project.getFullPath() : project.getFolder(relativeSourcePath).getFullPath();
+					
+					if (entry.getPath().equals(sourcePath)) {
 						return true;
 					} else {
 						// do nothing

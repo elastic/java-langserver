@@ -29,7 +29,7 @@ public class BuildPathHelperTest extends AbstractProjectsManagerBasedTest {
 
 		assertEquals(3, getSourceEntriesNum(javaProject));
 
-	}
+    }
 
 	private int getSourceEntriesNum(IJavaProject javaProject) throws JavaModelException {
 		int sum = 0;
