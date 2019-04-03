@@ -16,9 +16,13 @@ import org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer;
 import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
+import org.eclipse.jdt.ls.core.internal.JobHelpers;
+import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.elastic.jdt.ls.core.internal.EDefinitionHandler;
 import org.eclipse.lsp4j.DidChangeWorkspaceFoldersParams;
 import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.InitializeParams;
+import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.CompletableFutures;
@@ -36,6 +40,16 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 		super(JavaLanguageServerPlugin.getProjectsManager(), JavaLanguageServerPlugin.getPreferencesManager());
 		this.pm = JavaLanguageServerPlugin.getProjectsManager();
 		this.preferenceManager = JavaLanguageServerPlugin.getPreferencesManager();
+	}
+
+	@Override
+	public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
+		CompletableFuture<InitializeResult> result = super.initialize(params);
+		// wait until initialize job finishes
+		JobHelpers.waitForInitializeJobs();
+		BuildPathHelper pathHelper = new BuildPathHelper(ResourceUtils.canonicalFilePathFromURI(params.getRootUri()));
+		pathHelper.IncludeAllJavaFiles();
+		return result;
 	}
 
 	@Override
