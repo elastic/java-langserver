@@ -114,9 +114,9 @@ public class BuildPathHelper {
 			IPath path = new Path(dir.getPath());
 			IProject project = findBelongedProject(path);
 			if (project != null) {
-                this.javaProject = JavaCore.create(project);
-                IPath relativeSourcePath = path.makeRelativeTo(project.getLocation());
-			    this.sourcePath = relativeSourcePath.isEmpty() ? project.getFullPath() : project.getFolder(relativeSourcePath).getFullPath();   
+				this.javaProject = JavaCore.create(project);
+				IPath relativeSourcePath = path.makeRelativeTo(project.getLocation());
+				this.sourcePath = relativeSourcePath.isEmpty() ? project.getFullPath() : project.getFolder(relativeSourcePath).getFullPath();
 			}
 		}
 		

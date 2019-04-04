@@ -60,6 +60,8 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 		logInfo(">> java/didChangeWorkspaceFolders");
 		SynchronizedWorkspaceFolderChangeHandler handler = new SynchronizedWorkspaceFolderChangeHandler(pm);
 		handler.update(params);
+		BuildPathHelper pathHelper = new BuildPathHelper(ResourceUtils.canonicalFilePathFromURI(params.getEvent().getAdded().get(0).getUri()));
+		pathHelper.IncludeAllJavaFiles();
 	}
 
 	@Override
