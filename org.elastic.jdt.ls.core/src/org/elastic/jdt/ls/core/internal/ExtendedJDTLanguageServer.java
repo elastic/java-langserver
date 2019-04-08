@@ -8,6 +8,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.Job;
@@ -39,6 +40,8 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 
 	private PreferenceManager preferenceManager;
 
+	private IPath rootPath;
+
 	public ExtendedJDTLanguageServer(ProjectsManager projects, PreferenceManager preferenceManager) {
 		super(JavaLanguageServerPlugin.getProjectsManager(), JavaLanguageServerPlugin.getPreferencesManager());
 		this.pm = JavaLanguageServerPlugin.getProjectsManager();
@@ -47,12 +50,17 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 
 	@Override
 	public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-		CompletableFuture<InitializeResult> result = super.initialize(params);
-		// wait until initialize job finishes
-		JobHelpers.waitForInitializeJobs();
-		BuildPathHelper pathHelper = new BuildPathHelper(ResourceUtils.canonicalFilePathFromURI(params.getRootUri()));
-		pathHelper.IncludeAllJavaFiles();
-		return result;
+		this.rootPath = ResourceUtils.canonicalFilePathFromURI(params.getRootUri());
+		return super.initialize(params);
+	}
+	
+	@Override
+	public void initialized(InitializedParams params) {
+		super.initialized(params);
+		if (rootPath != null) {
+			BuildPathHelper pathHelper = new BuildPathHelper(rootPath);
+			pathHelper.IncludeAllJavaFiles();
+		}
 	}
 
 	@Override
