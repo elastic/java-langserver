@@ -16,16 +16,33 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.ls.core.internal.JavaClientConnection;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.ProjectUtils;
+import org.eclipse.jdt.ls.core.internal.ServiceStatus;
 
 public class BuildPathHelper {
 	
 	private final InfoRecorder rootInfoRecorder;
+	private JavaClientConnection connection;
 	
-	public BuildPathHelper(IPath rootPath) {
+	public BuildPathHelper(IPath rootPath, JavaClientConnection connection) {
 		this.rootInfoRecorder = new InfoRecorder(rootPath.toFile());
-		crawler(rootInfoRecorder);
+		this.connection = connection;
+	}
+
+	public void IncludeAllJavaFiles() {
+		long start = System.currentTimeMillis();
+		connection.sendStatus(ServiceStatus.Starting, "Begin to include all java files...");
+		try {
+			crawler(rootInfoRecorder);
+			includeJavaFiles(rootInfoRecorder);
+			JavaLanguageServerPlugin.logInfo("Include all Java paths in " + (System.currentTimeMillis() - start) + "ms");
+			connection.sendStatus(ServiceStatus.Started, "Ready");
+		} catch (Exception e) {
+			JavaLanguageServerPlugin.logException("Include Java paths failed ", e);
+			connection.sendStatus(ServiceStatus.Error, e.getMessage());
+		}
 	}
 	
 	private void crawler(InfoRecorder infoRecorder) {
@@ -61,11 +78,6 @@ public class BuildPathHelper {
 		}
 
 	}
-	
-	public void IncludeAllJavaFiles() {
-		includeJavaFiles(this.rootInfoRecorder);
-	}
-	
 	// top-down
 	private void includeJavaFiles(InfoRecorder infoRecorder) {
 		if (infoRecorder.shouldBeIncluded) {

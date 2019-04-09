@@ -7,11 +7,20 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.ls.core.internal.JavaClientConnection;
+import org.eclipse.jdt.ls.core.internal.JavaClientConnection.JavaLanguageClient;
 import org.elastic.jdt.ls.core.internal.managers.AbstractProjectsManagerBasedTest;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 
+@RunWith(MockitoJUnitRunner.class)
 public class BuildPathHelperTest extends AbstractProjectsManagerBasedTest {
+
+	@Mock
+	private JavaLanguageClient client;
 
 	@Test
 	public void testEclipseProject() throws Exception {
@@ -21,7 +30,7 @@ public class BuildPathHelperTest extends AbstractProjectsManagerBasedTest {
 		IJavaProject javaProject = JavaCore.create(project);
 		assertEquals(2, getSourceEntriesNum(javaProject));
 
-		BuildPathHelper buildPathHelper = new BuildPathHelper(project.getLocation());
+		BuildPathHelper buildPathHelper = new BuildPathHelper(project.getLocation(), new JavaClientConnection(client));
 		buildPathHelper.IncludeAllJavaFiles();
 
 		assertEquals(3, getSourceEntriesNum(javaProject));
@@ -36,7 +45,7 @@ public class BuildPathHelperTest extends AbstractProjectsManagerBasedTest {
 		IJavaProject javaProject = JavaCore.create(project);
 		assertEquals(1, getSourceEntriesNum(javaProject));
 
-		BuildPathHelper buildPathHelper = new BuildPathHelper(project.getLocation());
+		BuildPathHelper buildPathHelper = new BuildPathHelper(project.getLocation(), new JavaClientConnection(client));
 		buildPathHelper.IncludeAllJavaFiles();
 
 		assertEquals(4, getSourceEntriesNum(javaProject));

@@ -59,7 +59,7 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 	public void initialized(InitializedParams params) {
 		super.initialized(params);
 		if (rootPath != null) {
-			BuildPathHelper pathHelper = new BuildPathHelper(rootPath);
+			BuildPathHelper pathHelper = new BuildPathHelper(rootPath, super.getClientConnection());
 			pathHelper.IncludeAllJavaFiles();
 		}
 	}
@@ -69,7 +69,7 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 		logInfo(">> java/didChangeWorkspaceFolders");
 		SynchronizedWorkspaceFolderChangeHandler handler = new SynchronizedWorkspaceFolderChangeHandler(pm);
 		handler.update(params);
-		BuildPathHelper pathHelper = new BuildPathHelper(ResourceUtils.canonicalFilePathFromURI(params.getEvent().getAdded().get(0).getUri()));
+		BuildPathHelper pathHelper = new BuildPathHelper(ResourceUtils.canonicalFilePathFromURI(params.getEvent().getAdded().get(0).getUri()), super.getClientConnection());
 		pathHelper.IncludeAllJavaFiles();
 	}
 
