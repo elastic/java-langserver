@@ -50,10 +50,10 @@ public class ProjectCreator {
 	
 	private java.nio.file.Path currentDir;
 
-	public IJavaProject createJavaProjectFromProjectInfo(String projectName, java.nio.file.Path dir, ProjectInfo project, IProgressMonitor monitor) {
+	public IJavaProject createJavaProjectFromProjectInfo(java.nio.file.Path dir, ProjectInfo project, IProgressMonitor monitor) {
 		try {
 			currentDir = dir.resolve("." + project.getPath().replaceAll(":", "/"));
-			IJavaProject javaProject = createJavaProject(projectName, monitor);
+			IJavaProject javaProject = createJavaProject(project.getName(), monitor);
 
 			List<String> sourceDirs = project.getSrcDirs();
 			List<String> testSourceDirs = project.getTestSrcDirs();

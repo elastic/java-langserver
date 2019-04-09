@@ -3,7 +3,7 @@
       {
         "android": false,
         "path": ":",
-        "name": "single",
+        "name": "manifest2",
         "repos": [
           {
             "repoType": "MAVEN",

@@ -14,6 +14,8 @@ public class ProjectInfo {
     private String androidSdkVersion;
 
     private String path;
+    
+    private String name;
 
     private List<Repo> repos;
 
@@ -90,6 +92,14 @@ public class ProjectInfo {
     public List<String> getTestSrcDirs() {
         return testSrcDirs;
     }
+    
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
 
     public void setPath(String path) {
         this.path = path;
@@ -106,6 +116,7 @@ public class ProjectInfo {
                 .append("androidSdkVersion", androidSdkVersion)
                 .append("repos", repos.toString())
                 .append("deps", dependencies.toString())
+                .append("name", name)
                 .append("path", path)
                 .append("srcDirs", srcDirs)
                 .append("testSrcDirs", testSrcDirs)

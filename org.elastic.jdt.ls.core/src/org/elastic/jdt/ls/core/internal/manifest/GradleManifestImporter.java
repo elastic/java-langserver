@@ -25,7 +25,7 @@ public class GradleManifestImporter extends AbstractProjectImporter {
 	
 	public static final String GRADLE_MANIFEST_FILE = "manifest.json";
 	
-	private static final String IMPORTING_GRADLE_MANIFEST_PROJECTS = "Importing Gradle manifest project(s)";
+	public static final String IMPORTING_GRADLE_MANIFEST_PROJECTS = "Importing Gradle manifest project(s)";
 	
 	private Collection<Path> directories;
 	
@@ -54,16 +54,8 @@ public class GradleManifestImporter extends AbstractProjectImporter {
 		ProjectCreator pc = new ProjectCreator();
 		for (Path projectDir: directories) {
 			Config config = this.deserializedConfig(projectDir.toString() + "/" + GRADLE_MANIFEST_FILE);
-			config.getProjectInfos().forEach(info -> {
-				String projectName;
-				if (":".equals(info.getPath())) {
-					projectName = projectDir.getParent().getFileName().toString();
-				} else {
-					projectName = info.getPath().substring(info.getPath().lastIndexOf(":") + 1);
-				}
-				
+			config.getProjectInfos().forEach(info -> {			
 				pc.createJavaProjectFromProjectInfo(
-					projectName,
 					projectDir,
 					info,
 					subMonitor.newChild(1));
