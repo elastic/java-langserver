@@ -10,10 +10,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.elastic.jdt.ls.core.internal.managers.AbstractProjectsManagerBasedTest;
 import org.junit.Test;
 
-/**
- * @author poytr1
- *
- */
+
 public class BuildPathHelperTest extends AbstractProjectsManagerBasedTest {
 
 	@Test
@@ -29,7 +26,22 @@ public class BuildPathHelperTest extends AbstractProjectsManagerBasedTest {
 
 		assertEquals(3, getSourceEntriesNum(javaProject));
 
-    }
+	}
+
+	@Test
+	public void testComplexEclipseProject() throws Exception {
+		importProjects("eclipse/hello1");
+		IProject project = WorkspaceHelper.getProject("hello1");
+
+		IJavaProject javaProject = JavaCore.create(project);
+		assertEquals(1, getSourceEntriesNum(javaProject));
+
+		BuildPathHelper buildPathHelper = new BuildPathHelper(project.getLocation());
+		buildPathHelper.IncludeAllJavaFiles();
+
+		assertEquals(4, getSourceEntriesNum(javaProject));
+
+	}
 
 	private int getSourceEntriesNum(IJavaProject javaProject) throws JavaModelException {
 		int sum = 0;
