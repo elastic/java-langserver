@@ -1,0 +1,520 @@
+{
+  "projectInfos": [
+    {
+      "android": false,
+      "path": ":",
+      "name": "android",
+      "repos": [
+        {
+          "repoType": "MAVEN",
+          "url": "https://jcenter.bintray.com/"
+        },
+        {
+          "repoType": "MAVEN",
+          "url": "https://dl.google.com/dl/android/maven2/"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "android": true,
+      "androidSdkVersion": "android-25",
+      "path": ":app",
+      "name": "app",
+      "repos": [
+        {
+          "repoType": "MAVEN",
+          "url": "https://jcenter.bintray.com/"
+        },
+        {
+          "repoType": "MAVEN",
+          "url": "https://dl.google.com/dl/android/maven2/"
+        }
+      ],
+      "dependencies": [
+        {
+          "groupId": "com.android.tools.build",
+          "artifactId": "aapt2",
+          "version": "3.2.0-4818971"
+        },
+        {
+          "groupId": "com.android.support.test.espresso",
+          "artifactId": "espresso-core",
+          "version": "2.2.2"
+        },
+        {
+          "groupId": "com.android.support",
+          "artifactId": "appcompat-v7",
+          "version": "25.1.1"
+        },
+        {
+          "groupId": "com.android.support.constraint",
+          "artifactId": "constraint-layout",
+          "version": "1.0.1"
+        },
+        {
+          "groupId": "com.android.support",
+          "artifactId": "animated-vector-drawable",
+          "version": "25.1.1"
+        },
+        {
+          "groupId": "com.android.support",
+          "artifactId": "support-vector-drawable",
+          "version": "25.1.1"
+        },
+        {
+          "groupId": "com.android.support",
+          "artifactId": "support-compat",
+          "version": "25.1.1"
+        },
+        {
+          "groupId": "com.android.support",
+          "artifactId": "support-annotations",
+          "version": "25.1.1"
+        },
+        {
+          "groupId": "com.android.support",
+          "artifactId": "support-v4",
+          "version": "25.1.1"
+        },
+        {
+          "groupId": "com.android.support",
+          "artifactId": "support-fragment",
+          "version": "25.1.1"
+        },
+        {
+          "groupId": "com.android.support",
+          "artifactId": "support-media-compat",
+          "version": "25.1.1"
+        },
+        {
+          "groupId": "com.android.support",
+          "artifactId": "support-core-utils",
+          "version": "25.1.1"
+        },
+        {
+          "groupId": "com.android.support",
+          "artifactId": "support-core-ui",
+          "version": "25.1.1"
+        },
+        {
+          "groupId": "com.android.support.constraint",
+          "artifactId": "constraint-layout-solver",
+          "version": "1.0.1"
+        },
+        {
+          "path": "libs/u2fRequestHandler-v1-1.22.0-SNAPSHOT.jar"
+        },
+        {
+          "groupId": "com.squareup",
+          "artifactId": "javawriter",
+          "version": "2.1.1"
+        },
+        {
+          "groupId": "com.android.support.test",
+          "artifactId": "rules",
+          "version": "0.5"
+        },
+        {
+          "groupId": "com.android.support.test",
+          "artifactId": "runner",
+          "version": "0.5"
+        },
+        {
+          "groupId": "junit",
+          "artifactId": "junit",
+          "version": "4.12"
+        },
+        {
+          "groupId": "org.hamcrest",
+          "artifactId": "hamcrest-core",
+          "version": "1.3"
+        },
+        {
+          "groupId": "com.android.support.test",
+          "artifactId": "exposed-instrumentation-api-publish",
+          "version": "0.5"
+        },
+        {
+          "groupId": "javax.inject",
+          "artifactId": "javax.inject",
+          "version": "1"
+        },
+        {
+          "groupId": "org.hamcrest",
+          "artifactId": "hamcrest-integration",
+          "version": "1.3"
+        },
+        {
+          "groupId": "org.hamcrest",
+          "artifactId": "hamcrest-library",
+          "version": "1.3"
+        },
+        {
+          "groupId": "com.android.support.test.espresso",
+          "artifactId": "espresso-idling-resource",
+          "version": "2.2.2"
+        },
+        {
+          "groupId": "com.google.code.findbugs",
+          "artifactId": "jsr305",
+          "version": "2.0.1"
+        },
+        {
+          "groupId": "javax.annotation",
+          "artifactId": "javax.annotation-api",
+          "version": "1.2"
+        },
+        {
+          "groupId": "com.android.tools.lint",
+          "artifactId": "lint-gradle",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "com.android.tools.build",
+          "artifactId": "builder",
+          "version": "3.2.0"
+        },
+        {
+          "groupId": "com.android.tools.build",
+          "artifactId": "manifest-merger",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "com.android.tools",
+          "artifactId": "sdk-common",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "com.android.tools.build",
+          "artifactId": "builder-model",
+          "version": "3.2.0"
+        },
+        {
+          "groupId": "com.android.tools",
+          "artifactId": "annotations",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "org.jetbrains.kotlin",
+          "artifactId": "kotlin-reflect",
+          "version": "1.2.0"
+        },
+        {
+          "groupId": "org.jetbrains.kotlin",
+          "artifactId": "kotlin-stdlib",
+          "version": "1.2.0"
+        },
+        {
+          "groupId": "org.jetbrains",
+          "artifactId": "annotations",
+          "version": "13.0"
+        },
+        {
+          "groupId": "com.android.tools.build",
+          "artifactId": "builder-test-api",
+          "version": "3.2.0"
+        },
+        {
+          "groupId": "com.android.tools.ddms",
+          "artifactId": "ddmlib",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "com.android.tools",
+          "artifactId": "common",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "org.jetbrains.kotlin",
+          "artifactId": "kotlin-stdlib-jre8",
+          "version": "1.2.0"
+        },
+        {
+          "groupId": "org.jetbrains.kotlin",
+          "artifactId": "kotlin-stdlib-jre7",
+          "version": "1.2.0"
+        },
+        {
+          "groupId": "com.google.guava",
+          "artifactId": "guava",
+          "version": "23.0"
+        },
+        {
+          "groupId": "com.google.code.findbugs",
+          "artifactId": "jsr305",
+          "version": "1.3.9"
+        },
+        {
+          "groupId": "com.google.errorprone",
+          "artifactId": "error_prone_annotations",
+          "version": "2.0.18"
+        },
+        {
+          "groupId": "com.google.j2objc",
+          "artifactId": "j2objc-annotations",
+          "version": "1.1"
+        },
+        {
+          "groupId": "org.codehaus.mojo",
+          "artifactId": "animal-sniffer-annotations",
+          "version": "1.14"
+        },
+        {
+          "groupId": "net.sf.kxml",
+          "artifactId": "kxml2",
+          "version": "2.3.0"
+        },
+        {
+          "groupId": "com.android.tools",
+          "artifactId": "sdklib",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "com.android.tools.layoutlib",
+          "artifactId": "layoutlib-api",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "com.android.tools",
+          "artifactId": "dvlib",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "com.android.tools",
+          "artifactId": "repository",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "com.google.jimfs",
+          "artifactId": "jimfs",
+          "version": "1.1"
+        },
+        {
+          "groupId": "org.apache.commons",
+          "artifactId": "commons-compress",
+          "version": "1.12"
+        },
+        {
+          "groupId": "com.sun.activation",
+          "artifactId": "javax.activation",
+          "version": "1.2.0"
+        },
+        {
+          "groupId": "org.glassfish.jaxb",
+          "artifactId": "jaxb-runtime",
+          "version": "2.2.11"
+        },
+        {
+          "groupId": "org.glassfish.jaxb",
+          "artifactId": "jaxb-core",
+          "version": "2.2.11"
+        },
+        {
+          "groupId": "javax.xml.bind",
+          "artifactId": "jaxb-api",
+          "version": "2.2.12-b140109.1041"
+        },
+        {
+          "groupId": "org.glassfish.jaxb",
+          "artifactId": "txw2",
+          "version": "2.2.11"
+        },
+        {
+          "groupId": "com.sun.istack",
+          "artifactId": "istack-commons-runtime",
+          "version": "2.21"
+        },
+        {
+          "groupId": "org.jvnet.staxex",
+          "artifactId": "stax-ex",
+          "version": "1.7.7"
+        },
+        {
+          "groupId": "com.sun.xml.fastinfoset",
+          "artifactId": "FastInfoset",
+          "version": "1.2.13"
+        },
+        {
+          "groupId": "com.google.code.gson",
+          "artifactId": "gson",
+          "version": "2.8.0"
+        },
+        {
+          "groupId": "org.apache.httpcomponents",
+          "artifactId": "httpmime",
+          "version": "4.5.2"
+        },
+        {
+          "groupId": "org.apache.httpcomponents",
+          "artifactId": "httpclient",
+          "version": "4.5.2"
+        },
+        {
+          "groupId": "org.apache.httpcomponents",
+          "artifactId": "httpcore",
+          "version": "4.4.5"
+        },
+        {
+          "groupId": "commons-logging",
+          "artifactId": "commons-logging",
+          "version": "1.2"
+        },
+        {
+          "groupId": "commons-codec",
+          "artifactId": "commons-codec",
+          "version": "1.9"
+        },
+        {
+          "groupId": "org.bouncycastle",
+          "artifactId": "bcpkix-jdk15on",
+          "version": "1.56"
+        },
+        {
+          "groupId": "org.bouncycastle",
+          "artifactId": "bcprov-jdk15on",
+          "version": "1.56"
+        },
+        {
+          "groupId": "com.google.protobuf",
+          "artifactId": "protobuf-java",
+          "version": "3.4.0"
+        },
+        {
+          "groupId": "com.android.tools.analytics-library",
+          "artifactId": "tracker",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "com.android.tools.analytics-library",
+          "artifactId": "shared",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "com.android.tools.analytics-library",
+          "artifactId": "protos",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "com.android.tools.build",
+          "artifactId": "apkzlib",
+          "version": "3.2.0"
+        },
+        {
+          "groupId": "com.android.tools.build",
+          "artifactId": "apksig",
+          "version": "3.2.0"
+        },
+        {
+          "groupId": "com.squareup",
+          "artifactId": "javawriter",
+          "version": "2.5.0"
+        },
+        {
+          "groupId": "org.ow2.asm",
+          "artifactId": "asm-commons",
+          "version": "6.0"
+        },
+        {
+          "groupId": "org.ow2.asm",
+          "artifactId": "asm-tree",
+          "version": "6.0"
+        },
+        {
+          "groupId": "org.ow2.asm",
+          "artifactId": "asm",
+          "version": "6.0"
+        },
+        {
+          "groupId": "org.ow2.asm",
+          "artifactId": "asm-util",
+          "version": "6.0"
+        },
+        {
+          "groupId": "it.unimi.dsi",
+          "artifactId": "fastutil",
+          "version": "7.2.0"
+        },
+        {
+          "groupId": "net.sf.jopt-simple",
+          "artifactId": "jopt-simple",
+          "version": "4.9"
+        },
+        {
+          "groupId": "com.googlecode.json-simple",
+          "artifactId": "json-simple",
+          "version": "1.1"
+        },
+        {
+          "groupId": "com.android.tools.lint",
+          "artifactId": "lint",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "com.android.tools.lint",
+          "artifactId": "lint-checks",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "com.android.tools.lint",
+          "artifactId": "lint-api",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "com.android.tools.lint",
+          "artifactId": "lint-kotlin",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "com.android.tools.external.com-intellij",
+          "artifactId": "intellij-core",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "org.jetbrains.trove4j",
+          "artifactId": "trove4j",
+          "version": "20160824"
+        },
+        {
+          "groupId": "com.android.tools.external.org-jetbrains",
+          "artifactId": "uast",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "com.android.tools.external.com-intellij",
+          "artifactId": "kotlin-compiler",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "org.ow2.asm",
+          "artifactId": "asm-analysis",
+          "version": "6.0"
+        },
+        {
+          "groupId": "com.android.tools.lint",
+          "artifactId": "lint-gradle-api",
+          "version": "26.2.0"
+        },
+        {
+          "groupId": "com.android.tools.build",
+          "artifactId": "gradle-api",
+          "version": "3.2.0"
+        },
+        {
+          "groupId": "org.codehaus.groovy",
+          "artifactId": "groovy-all",
+          "version": "2.4.12"
+        }
+      ],
+      "srcDirs": [
+        "src/main/java",
+        "build/generated/source/r/debug",
+        "build/generated/source/buildConfig/debug",
+        "build/generated/source/aidl/debug"
+      ],
+      "testSrcDirs": [
+        "src/test/java"
+      ]
+    }
+  ]
+}

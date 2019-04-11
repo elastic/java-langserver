@@ -3,12 +3,13 @@ package org.elastic.jdt.ls.core.internal.manifest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -83,7 +84,7 @@ public class ProjectCreator {
 			
 			return javaProject;
 		}
-		catch (CoreException ce) {
+		catch (CoreException | InterruptedException ce) {
 			JavaLanguageServerPlugin.logException("Failed to create the java project depending on info" + project.toString(), ce);
 			return null;
 		}
@@ -113,51 +114,70 @@ public class ProjectCreator {
 		if (version == null) {
 			return;
 		}
-		JavaLanguageServerPlugin.logInfo("Adding Android SDK classpath entry");
-		addVariableEntry(javaProject, new Path("ANDROID_HOME/platforms/" + version + "/android.jar"), new Path("ANDROID_HOME/sources/" + version), null, monitor);
+		String androidHome = System.getenv("ANDROID_HOME");
+		if (androidHome != null) {
+			addVariableEntry(javaProject, new Path(androidHome + "/platforms/" + version + "/android.jar"), new Path(androidHome + "/sources/" + version), null, monitor);
+		} else {
+			JavaLanguageServerPlugin.logError("ANDROID_HOME is undefined");
+		}
 	}
 	
-	private List<Pair<String, String>> retrieveAllDeps(List<Dependency> deps, List<Repo> repos) {
-		ArrayList<Pair<String, String>> allDepsPaths = new ArrayList();
+	private List<Pair<String, String>> retrieveAllDeps(List<Dependency> deps, List<Repo> repos) throws InterruptedException {
+		List<Pair<String, String>> allDepsPaths = Collections.synchronizedList(new ArrayList<>());
 		
 		RepositorySystem system = ArtifactResolver.newRepositorySystem();
         RepositorySystemSession session = ArtifactResolver.newRepositorySystemSession(system);
-        
-        ArrayList<ArtifactRequest> artifactRequests = new ArrayList();
+
         ArtifactRequest artifactRequest = new ArtifactRequest();
         artifactRequest.setRepositories(ArtifactResolver.newRepositories(system, session, repos));
-        for (Dependency dep: deps) {
-            File artifactFile = null;
-        	if (dep.getPath() != null) {
-        		// local libs
-        		allDepsPaths.add(Pair.of(dep.getPath(), null));
-        	} else {
-        		try {
-	        		Artifact artifact = new DefaultArtifact(String.format("%s:%s:%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion()));
-	    			artifactRequest.setArtifact(artifact);
-	    			ArtifactResult artifactResult = system.resolveArtifact(session, artifactRequest);
-	    			artifactFile = artifactResult.getArtifact().getFile();
-	    			if (FilenameUtils.getExtension(artifactFile.getName()) == "aar") {
-	            		// extract all *.aar to jar
-	            		explodeAarJarFiles(artifactFile, String.format("%s-%s-%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion())).forEach(allDepsPaths::add);
-	            	} else {
-	            		Artifact sourceArtifact = new DefaultArtifact(String.format("%s:%s:jar:sources:%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion()));
-	            		artifactRequest.setArtifact(sourceArtifact);
-	            		ArtifactResult sourceArtifactResult = system.resolveArtifact(session, artifactRequest);
-	            		allDepsPaths.add(Pair.of(artifactFile.getPath(), sourceArtifactResult.getArtifact().getFile().getPath()));
-	            	}
-        		} catch (ArtifactResolutionException e) {
-        			if (artifactFile != null) {
-        				if (FilenameUtils.getExtension(artifactFile.getName()) == "aar") {
+        
+        class DownloadDepTask implements Runnable {
+    		Dependency dep;
+    		DownloadDepTask(Dependency dep) {
+    			this.dep = dep;
+			}
+    		@Override
+    		public void run() {
+    			File artifactFile = null;
+            	if (dep.getPath() != null) {
+            		// local libs
+            		allDepsPaths.add(Pair.of(dep.getPath(), null));
+            	} else {
+            		try {
+    	        		Artifact artifact = new DefaultArtifact(String.format("%s:%s:%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion()));
+    	    			artifactRequest.setArtifact(artifact);
+    	    			ArtifactResult artifactResult = system.resolveArtifact(session, artifactRequest);
+    	    			artifactFile = artifactResult.getArtifact().getFile();
+    	    			if (FilenameUtils.getExtension(artifactFile.getName()) == "aar") {
     	            		// extract all *.aar to jar
     	            		explodeAarJarFiles(artifactFile, String.format("%s-%s-%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion())).forEach(allDepsPaths::add);
     	            	} else {
-    	            		allDepsPaths.add(Pair.of(artifactFile.getPath(), null));
+    	            		Artifact sourceArtifact = new DefaultArtifact(String.format("%s:%s:jar:sources:%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion()));
+    	            		artifactRequest.setArtifact(sourceArtifact);
+    	            		ArtifactResult sourceArtifactResult = system.resolveArtifact(session, artifactRequest);
+    	            		allDepsPaths.add(Pair.of(artifactFile.getPath(), sourceArtifactResult.getArtifact().getFile().getPath()));
     	            	}
-        			}
-        		}
-        	}
+            		} catch (ArtifactResolutionException e) {
+            			if (artifactFile != null) {
+            				if (FilenameUtils.getExtension(artifactFile.getName()) == "aar") {
+        	            		// extract all *.aar to jar
+        	            		explodeAarJarFiles(artifactFile, String.format("%s-%s-%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion())).forEach(allDepsPaths::add);
+        	            	} else {
+        	            		allDepsPaths.add(Pair.of(artifactFile.getPath(), null));
+        	            	}
+            			}
+            		}
+            	}
+    		
+    		}
         }
+        
+        ExecutorService pool = Executors.newFixedThreadPool(10);
+        for (Dependency dependency: deps) {
+        	pool.submit(new DownloadDepTask(dependency));
+        }
+        pool.shutdown();
+        pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
      
         return allDepsPaths;
 	}

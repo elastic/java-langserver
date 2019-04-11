@@ -18,6 +18,12 @@ public class GradleManifestImporterTest extends AbstractGradleManifestBasedTest 
 	}
 
 	@Test
+	public void testImportAndroidProject() throws Exception {
+		IProject project = importGradleManifestProject("android");
+		assertTaskCompleted(GradleManifestImporter.IMPORTING_GRADLE_MANIFEST_PROJECTS);
+	}
+
+	@Test
 	public void importNestedManifestProject() throws Exception {
 		List<IProject> projects = importProjects("manifest/nested");
 		assertEquals(3, projects.size());//default + 2 gradle projects
