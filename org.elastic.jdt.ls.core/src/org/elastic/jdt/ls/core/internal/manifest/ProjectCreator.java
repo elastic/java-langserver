@@ -68,7 +68,9 @@ public class ProjectCreator {
 			}
 
 			// add rt.jar
-			addVariableEntry(javaProject, new Path(JavaRuntime.JRELIB_VARIABLE), new Path(JavaRuntime.JRESRC_VARIABLE), new Path(JavaRuntime.JRESRCROOT_VARIABLE), monitor);
+			if (sourceDirs != null && testSourceDirs != null) {
+				addVariableEntry(javaProject, new Path(JavaRuntime.JRELIB_VARIABLE), new Path(JavaRuntime.JRESRC_VARIABLE), new Path(JavaRuntime.JRESRCROOT_VARIABLE), monitor);
+			}
 			
 			// add android SDK if an Android project
 			if (project.isAndroid()) {
