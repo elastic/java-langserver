@@ -1,10 +1,8 @@
 package org.elastic.jdt.ls.core.internal;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IClassFile;
@@ -12,7 +10,6 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.ITypeRoot;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
@@ -29,6 +26,7 @@ import org.eclipse.lsp4j.ReferenceParams;
 public class ExtendedReferencesHandler {
 	
 	private PreferenceManager preferenceManager;
+	private final int MAX_REFERENCES = 1000;
 
 	public ExtendedReferencesHandler(PreferenceManager preferenceManager) {
 		this.preferenceManager = preferenceManager;
@@ -61,9 +59,14 @@ public class ExtendedReferencesHandler {
 			SearchPattern pattern = SearchPattern.createPattern(elementToSearch, IJavaSearchConstants.REFERENCES);
 
 			engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, createSearchScope(unit), new SearchRequestor() {
+				
+				private int currentSymbolNum = 0;
 
 				@Override
 				public void acceptSearchMatch(SearchMatch match) throws CoreException {
+					if (currentSymbolNum >= MAX_REFERENCES) {
+						return;
+					}
 					Object o = match.getElement();
 					if (o instanceof IJavaElement) {
 						IJavaElement element = (IJavaElement) o;
@@ -79,6 +82,7 @@ public class ExtendedReferencesHandler {
 						}
 						if (location != null) {
 							locations.add(location);
+							currentSymbolNum += 1;
 						}
 					}
 				}
