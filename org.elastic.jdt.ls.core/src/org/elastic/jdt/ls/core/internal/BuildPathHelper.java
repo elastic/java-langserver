@@ -9,9 +9,15 @@ import java.util.stream.Stream;
 
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -20,6 +26,7 @@ import org.eclipse.jdt.ls.core.internal.JavaClientConnection;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 import org.eclipse.jdt.ls.core.internal.ServiceStatus;
+import org.eclipse.jdt.ls.core.internal.handlers.InitHandler;
 
 public class BuildPathHelper {
 	
@@ -32,17 +39,34 @@ public class BuildPathHelper {
 	}
 
 	public void IncludeAllJavaFiles() {
-		long start = System.currentTimeMillis();
-		connection.sendStatus(ServiceStatus.Starting, "Begin to include all java files...");
-		try {
-			crawler(rootInfoRecorder);
-			includeJavaFiles(rootInfoRecorder);
-			JavaLanguageServerPlugin.logInfo("Include all Java paths in " + (System.currentTimeMillis() - start) + "ms");
-			connection.sendStatus(ServiceStatus.Started, "Ready");
-		} catch (Exception e) {
-			JavaLanguageServerPlugin.logException("Include Java paths failed ", e);
-			connection.sendStatus(ServiceStatus.Error, e.getMessage());
-		}
+		Job job = new WorkspaceJob("Include java files") {
+
+			@Override
+			public IStatus runInWorkspace(IProgressMonitor monitor) {
+				long start = System.currentTimeMillis();
+				connection.sendStatus(ServiceStatus.Starting, "Begin to include all java files...");
+				try {
+					crawler(rootInfoRecorder);
+					includeJavaFiles(rootInfoRecorder);
+					JavaLanguageServerPlugin.logInfo("Include all Java paths in " + (System.currentTimeMillis() - start) + "ms");
+					connection.sendStatus(ServiceStatus.Started, "Ready");
+				} catch (Exception e) {
+					JavaLanguageServerPlugin.logException("Include Java paths failed ", e);
+					connection.sendStatus(ServiceStatus.Error, e.getMessage());
+				}
+				return Status.OK_STATUS;
+			}
+			
+			@Override
+			public boolean belongsTo(Object family) {
+				return InitHandler.JAVA_LS_INITIALIZATION_JOBS.equals(family);
+			}
+			
+		};
+		job.setPriority(Job.DECORATE);
+		job.setRule(ResourcesPlugin.getWorkspace().getRoot());
+		job.schedule();
+		
 	}
 	
 	private void crawler(InfoRecorder infoRecorder) {
@@ -53,7 +77,8 @@ public class BuildPathHelper {
 		{
 			for (File file : listOfFilesAndDirectory)
 			{	
-				if (FilenameUtils.getName(file.toString()).startsWith(".")) {
+				String fileName = FilenameUtils.getName(file.toString());
+				if (fileName.startsWith(".") || fileName == "build") {
 					continue;
 				}
 				if (file.isDirectory()) {

@@ -13,6 +13,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.ls.core.internal.CancellableProgressMonitor;
+import org.eclipse.jdt.ls.core.internal.handlers.InitHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentLifeCycleHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer;
 import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
@@ -52,16 +53,10 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 	@Override
 	public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
 		this.rootPath = ResourceUtils.canonicalFilePathFromURI(params.getRootUri());
-		return super.initialize(params);
-	}
-	
-	@Override
-	public void initialized(InitializedParams params) {
-		super.initialized(params);
-		if (rootPath != null) {
-			BuildPathHelper pathHelper = new BuildPathHelper(rootPath, super.getClientConnection());
-			pathHelper.IncludeAllJavaFiles();
-		}
+		CompletableFuture<InitializeResult> result = super.initialize(params);
+		BuildPathHelper pathHelper = new BuildPathHelper(rootPath, super.getClientConnection());
+		pathHelper.IncludeAllJavaFiles();
+		return result;
 	}
 
 	@Override
@@ -71,6 +66,11 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 		handler.update(params);
 		BuildPathHelper pathHelper = new BuildPathHelper(ResourceUtils.canonicalFilePathFromURI(params.getEvent().getAdded().get(0).getUri()), super.getClientConnection());
 		pathHelper.IncludeAllJavaFiles();
+		try {
+			Job.getJobManager().join(InitHandler.JAVA_LS_INITIALIZATION_JOBS, null);
+		} catch (OperationCanceledException | InterruptedException e) {
+			JavaLanguageServerPlugin.logException(e.getMessage(), e);
+		}
 	}
 
 	@Override

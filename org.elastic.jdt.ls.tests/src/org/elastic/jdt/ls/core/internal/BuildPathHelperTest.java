@@ -3,10 +3,12 @@ package org.elastic.jdt.ls.core.internal;
 import static org.junit.Assert.assertEquals;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.ls.core.internal.handlers.InitHandler;
 import org.eclipse.jdt.ls.core.internal.JavaClientConnection;
 import org.eclipse.jdt.ls.core.internal.JavaClientConnection.JavaLanguageClient;
 import org.elastic.jdt.ls.core.internal.managers.AbstractProjectsManagerBasedTest;
@@ -33,6 +35,8 @@ public class BuildPathHelperTest extends AbstractProjectsManagerBasedTest {
 		BuildPathHelper buildPathHelper = new BuildPathHelper(project.getLocation(), new JavaClientConnection(client));
 		buildPathHelper.IncludeAllJavaFiles();
 
+		Job.getJobManager().join(InitHandler.JAVA_LS_INITIALIZATION_JOBS, null);
+
 		assertEquals(3, getSourceEntriesNum(javaProject));
 
 	}
@@ -47,6 +51,8 @@ public class BuildPathHelperTest extends AbstractProjectsManagerBasedTest {
 
 		BuildPathHelper buildPathHelper = new BuildPathHelper(project.getLocation(), new JavaClientConnection(client));
 		buildPathHelper.IncludeAllJavaFiles();
+		
+		Job.getJobManager().join(InitHandler.JAVA_LS_INITIALIZATION_JOBS, null);
 
 		assertEquals(4, getSourceEntriesNum(javaProject));
 
