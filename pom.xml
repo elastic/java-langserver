@@ -20,9 +20,9 @@
 		<!-- skip for local builds, set it to true on elastic.org infrastructure -->
 		<cbi.jarsigner.skip>true</cbi.jarsigner.skip>
 		<generateSourceRef>true</generateSourceRef>
-		<jdkVersion>11.0.2</jdkVersion>
-		<jdkMajor>11</jdkMajor>
-		<jdkBuild>9</jdkBuild>
+		<jdkVersion>12</jdkVersion>
+		<jdkMajor>12</jdkMajor>
+		<jdkBuild>33</jdkBuild>
 	</properties>
 	<modules>
 		<module>org.elastic.jdt.ls.target</module>
