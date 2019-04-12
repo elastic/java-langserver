@@ -18,7 +18,7 @@ import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
 
-import org.elastic.jdt.ls.core.internal.JavaLanguageServerPlugin;
+import org.elastic.jdt.ls.core.internal.ElasticJavaLanguageServerPlugin;
 import org.elastic.jdt.ls.core.internal.manifest.model.Repo;
 
 
@@ -34,7 +34,7 @@ public class ArtifactResolver {
             @Override
             public void serviceCreationFailed( Class<?> type, Class<?> impl, Throwable exception )
             {
-            	JavaLanguageServerPlugin.logException("Service creation failed for" + type + "implementation" + impl + ": " + exception.getMessage(), exception);
+            	ElasticJavaLanguageServerPlugin.logException("Service creation failed for" + type + "implementation" + impl + ": " + exception.getMessage(), exception);
             }
         });
 

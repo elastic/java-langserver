@@ -33,7 +33,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.launching.JavaRuntime;
 
-import org.elastic.jdt.ls.core.internal.JavaLanguageServerPlugin;
+import org.elastic.jdt.ls.core.internal.ElasticJavaLanguageServerPlugin;
 import org.elastic.jdt.ls.core.internal.manifest.model.Dependency;
 import org.elastic.jdt.ls.core.internal.manifest.model.ProjectInfo;
 import org.elastic.jdt.ls.core.internal.manifest.model.Repo;
@@ -51,10 +51,16 @@ public class ProjectCreator {
 	
 	private java.nio.file.Path currentDir;
 
-	public IJavaProject createJavaProjectFromProjectInfo(java.nio.file.Path dir, ProjectInfo project, IProgressMonitor monitor) {
+	public IJavaProject createJavaProjectFromProjectInfo(java.nio.file.Path dir, String rootProjectName, ProjectInfo project, IProgressMonitor monitor) {
 		try {
-			currentDir = dir.resolve("." + project.getPath().replaceAll(":", "/"));
-			IJavaProject javaProject = createJavaProject(project.getName(), monitor);
+			IJavaProject javaProject;
+			if (project.getPath().equals(":")) {
+				currentDir = dir;
+				javaProject = createJavaProject(rootProjectName, monitor);
+			} else {
+				currentDir = dir.resolve(project.getPath().substring(1).replaceAll(":", "/"));
+				javaProject = createJavaProject(rootProjectName.concat(project.getPath().replaceAll(":", ".")), monitor);
+			}
 
 			List<String> sourceDirs = project.getSrcDirs();
 			List<String> testSourceDirs = project.getTestSrcDirs();
@@ -66,7 +72,6 @@ public class ProjectCreator {
 			if (testSourceDirs != null) {
 				createSourceDirectories(testSourceDirs, javaProject, monitor);
 			}
-
 			// add rt.jar
 			if (sourceDirs != null && testSourceDirs != null) {
 				addVariableEntry(javaProject, new Path(JavaRuntime.JRELIB_VARIABLE), new Path(JavaRuntime.JRESRC_VARIABLE), new Path(JavaRuntime.JRESRCROOT_VARIABLE), monitor);
@@ -87,7 +92,7 @@ public class ProjectCreator {
 			return javaProject;
 		}
 		catch (CoreException | InterruptedException ce) {
-			JavaLanguageServerPlugin.logException("Failed to create the java project depending on info" + project.toString(), ce);
+			ElasticJavaLanguageServerPlugin.logException("Failed to create the java project depending on info" + project.toString(), ce);
 			return null;
 		}
 	}
@@ -120,7 +125,7 @@ public class ProjectCreator {
 		if (androidHome != null) {
 			addVariableEntry(javaProject, new Path(androidHome + "/platforms/" + version + "/android.jar"), new Path(androidHome + "/sources/" + version), null, monitor);
 		} else {
-			JavaLanguageServerPlugin.logError("ANDROID_HOME is undefined");
+			ElasticJavaLanguageServerPlugin.logError("ANDROID_HOME is undefined");
 		}
 	}
 	
@@ -184,12 +189,13 @@ public class ProjectCreator {
         return allDepsPaths;
 	}
 	
+	
 	// @see com.greensopinion.gradle.android.eclipse.GenerateLibraryDependenciesAction#explodeAarJarFiles
 	private Stream<Pair<String, String>> explodeAarJarFiles(File aarFile, String jarId) {
 		File targetFolder = new File(new File(new File(currentDir.toAbsolutePath().toString(), "build"), "exploded-aars"), jarId);
 		if (!targetFolder.exists()) {
 			if (!targetFolder.mkdirs()) {
-				JavaLanguageServerPlugin.logError("Cannot create folder: " + targetFolder.getAbsolutePath());
+				ElasticJavaLanguageServerPlugin.logError("Cannot create folder: " + targetFolder.getAbsolutePath());
 			}
 			try (ZipFile zipFile = new ZipFile(aarFile)) {
 				zipFile.stream().forEach(f -> {
@@ -205,7 +211,7 @@ public class ProjectCreator {
 					}
 				});
 			} catch (IOException e) {
-				JavaLanguageServerPlugin.logException("Cannot explode aar: " + aarFile.getAbsolutePath(), e);
+				ElasticJavaLanguageServerPlugin.logException("Cannot explode aar: " + aarFile.getAbsolutePath(), e);
 			}
 		}
 		List<File> files = listFilesTraversingFolders(targetFolder);
@@ -277,8 +283,6 @@ public class ProjectCreator {
 		}
 
 		IJavaProject jproject = JavaCore.create(project);
-
-		jproject.setRawClasspath(new IClasspathEntry[0], monitor);
 
 		return jproject;
 	}

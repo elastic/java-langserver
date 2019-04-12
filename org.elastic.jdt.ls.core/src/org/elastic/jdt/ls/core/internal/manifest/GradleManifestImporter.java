@@ -18,7 +18,7 @@ import org.eclipse.jdt.ls.core.internal.managers.BasicFileDetector;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 
 import org.elastic.jdt.ls.core.internal.manifest.model.Config;
-import org.elastic.jdt.ls.core.internal.JavaLanguageServerPlugin;
+import org.elastic.jdt.ls.core.internal.ElasticJavaLanguageServerPlugin;
 
 
 public class GradleManifestImporter extends AbstractProjectImporter {
@@ -34,7 +34,7 @@ public class GradleManifestImporter extends AbstractProjectImporter {
 		if (rootFolder == null) {
 			return false;
 		}
-		PreferenceManager preferencesManager = JavaLanguageServerPlugin.getPreferencesManager();
+		PreferenceManager preferencesManager = ElasticJavaLanguageServerPlugin.getPreferencesManager();
 		if (directories == null) {
 			BasicFileDetector gradleManifestDetector = new BasicFileDetector(rootFolder.toPath(), GRADLE_MANIFEST_FILE).includeNested(false);
 			directories = gradleManifestDetector.scan(monitor);
@@ -49,14 +49,16 @@ public class GradleManifestImporter extends AbstractProjectImporter {
 		}
 		SubMonitor subMonitor = SubMonitor.convert(monitor, directories.size() + 1);
 		subMonitor.setTaskName(IMPORTING_GRADLE_MANIFEST_PROJECTS);
-		JavaLanguageServerPlugin.logInfo(IMPORTING_GRADLE_MANIFEST_PROJECTS);
+		ElasticJavaLanguageServerPlugin.logInfo(IMPORTING_GRADLE_MANIFEST_PROJECTS);
 		subMonitor.worked(1);
 		ProjectCreator pc = new ProjectCreator();
 		for (Path projectDir: directories) {
 			Config config = this.deserializedConfig(projectDir.toString() + "/" + GRADLE_MANIFEST_FILE);
+			String rootProjectName = config.getProjectInfos().stream().filter(info -> info.getPath().equals(":")).findFirst().get().getName();
 			config.getProjectInfos().forEach(info -> {			
 				pc.createJavaProjectFromProjectInfo(
 					projectDir,
+					rootProjectName,
 					info,
 					subMonitor.newChild(1));
 				});
@@ -72,7 +74,7 @@ public class GradleManifestImporter extends AbstractProjectImporter {
 			Gson gson = new GsonBuilder().create();
 			return gson.fromJson(bufferedReader, Config.class);
 		} catch (FileNotFoundException e) {
-			JavaLanguageServerPlugin.logException("Cannot parse manifest config file: " + file, e);
+			ElasticJavaLanguageServerPlugin.logException("Cannot parse manifest config file: " + file, e);
 		}
 		return null;
 	}

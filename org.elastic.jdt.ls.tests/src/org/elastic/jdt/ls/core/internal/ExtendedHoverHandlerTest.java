@@ -38,7 +38,7 @@ import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.elastic.jdt.ls.core.internal.managers.AbstractProjectsManagerBasedTest;
-import org.elastic.jdt.ls.core.internal.JavaLanguageServerPlugin;
+import org.elastic.jdt.ls.core.internal.ElasticJavaLanguageServerPlugin;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -286,7 +286,7 @@ public class ExtendedHoverHandlerTest extends AbstractProjectsManagerBasedTest {
 	public void testHoverThrowable() throws Exception {
 		String uriString = ClassFileUtil.getURI(project, "java.lang.Exception");
 		IClassFile classFile = JDTUtils.resolveClassFile(uriString);
-		String contents = JavaLanguageServerPlugin.getContentProviderManager().getSource(classFile, monitor);
+		String contents = ElasticJavaLanguageServerPlugin.getContentProviderManager().getSource(classFile, monitor);
 		IDocument document = new Document(contents);
 		IRegion region = new FindReplaceDocumentAdapter(document).find(0, "Throwable", true, false, false, false);
 		int offset = region.getOffset();
@@ -400,7 +400,7 @@ public class ExtendedHoverHandlerTest extends AbstractProjectsManagerBasedTest {
 		Either<String, MarkedString> javadoc = hover.getContents().getLeft().get(1);
 		String content = null;
 		assertTrue("javadoc has null content", javadoc != null && javadoc.getLeft() != null && (content = javadoc.getLeft()) != null);
-		JavaLanguageServerPlugin.logInfo(content);
+		ElasticJavaLanguageServerPlugin.logInfo(content);
 		assertMatches("`Foo.linkedFromFoo2\\(\\)`", content);
 	}
 

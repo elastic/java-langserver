@@ -8,13 +8,13 @@ import org.eclipse.lsp4j.jsonrpc.json.MessageJsonHandler;
 import org.eclipse.lsp4j.jsonrpc.messages.Message;
 import org.eclipse.lsp4j.jsonrpc.services.ServiceEndpoints;
 
-import org.elastic.jdt.ls.core.internal.ExtendedJDTLanguageServer;
+import org.elastic.jdt.ls.core.internal.ElasticJDTLanguageServer;
 
 public final class JsonMessageHelper {
 
 	private static MessageJsonHandler handler;
 	static {
-		Map<String, JsonRpcMethod> methods = ServiceEndpoints.getSupportedMethods(ExtendedJDTLanguageServer.class);
+		Map<String, JsonRpcMethod> methods = ServiceEndpoints.getSupportedMethods(ElasticJDTLanguageServer.class);
 		handler = new MessageJsonHandler(methods);
 	}
 

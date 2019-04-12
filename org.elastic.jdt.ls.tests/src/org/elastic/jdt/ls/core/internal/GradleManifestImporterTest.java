@@ -20,7 +20,9 @@ public class GradleManifestImporterTest extends AbstractGradleManifestBasedTest 
 	@Test
 	public void testImportAndroidProject() throws Exception {
 		IProject project = importGradleManifestProject("android");
+		IProject app = WorkspaceHelper.getProject("android.app");
 		assertTaskCompleted(GradleManifestImporter.IMPORTING_GRADLE_MANIFEST_PROJECTS);
+		assertIsJavaProject(app);
 	}
 
 	@Test

@@ -412,7 +412,7 @@ public class ElasticJavaLanguageServerPlugin extends Plugin {
 		this.protocol = protocol;
 	}
 
-	public ExtendedJDTLanguageServer getProtocol() {
+	public ElasticJDTLanguageServer getProtocol() {
 		return protocol;
 	}
 
