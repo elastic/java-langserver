@@ -8,7 +8,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.Job;
@@ -42,8 +41,6 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 
 	private PreferenceManager preferenceManager;
 
-	private IPath rootPath;
-
 	public ExtendedJDTLanguageServer(ProjectsManager projects, PreferenceManager preferenceManager) {
 		super(JavaLanguageServerPlugin.getProjectsManager(), JavaLanguageServerPlugin.getPreferencesManager());
 		this.pm = JavaLanguageServerPlugin.getProjectsManager();
@@ -52,9 +49,8 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 
 	@Override
 	public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-		this.rootPath = ResourceUtils.canonicalFilePathFromURI(params.getRootUri());
 		CompletableFuture<InitializeResult> result = super.initialize(params);
-		BuildPathHelper pathHelper = new BuildPathHelper(rootPath, super.getClientConnection());
+		BuildPathHelper pathHelper = new BuildPathHelper(ResourceUtils.canonicalFilePathFromURI(params.getRootUri()), super.getClientConnection());
 		pathHelper.IncludeAllJavaFiles();
 		return result;
 	}
