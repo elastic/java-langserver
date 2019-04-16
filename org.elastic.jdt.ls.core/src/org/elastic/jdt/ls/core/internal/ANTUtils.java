@@ -7,12 +7,12 @@ import java.util.List;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.UnknownElement;
 
-import org.eclipse.ant.internal.ui.AntUtil;
-import org.eclipse.ant.internal.ui.model.AntProjectNode;
-import org.eclipse.ant.internal.ui.model.IAntModel;
-import org.eclipse.ant.internal.ui.model.AntTaskNode;
-import org.eclipse.ant.internal.ui.model.IAntElement;
-import org.eclipse.ant.internal.ui.model.AntTargetNode;
+import org.elastic.jdt.ls.core.internal.ant.AntUtil;
+import org.elastic.jdt.ls.core.internal.ant.AntProjectNode;
+import org.elastic.jdt.ls.core.internal.ant.IAntModel;
+import org.elastic.jdt.ls.core.internal.ant.AntTaskNode;
+import org.elastic.jdt.ls.core.internal.ant.IAntElement;
+import org.elastic.jdt.ls.core.internal.ant.AntTargetNode;
 
 public final class ANTUtils {
 	

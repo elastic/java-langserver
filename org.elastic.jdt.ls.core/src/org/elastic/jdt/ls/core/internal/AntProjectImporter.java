@@ -17,9 +17,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.eclipse.ant.internal.ui.datatransfer.*;
-import org.eclipse.ant.internal.ui.model.AntProjectNode;
-import org.eclipse.ant.internal.ui.model.AntTaskNode;
+import org.elastic.jdt.ls.core.internal.ant.ProjectCreator;
+import org.elastic.jdt.ls.core.internal.ant.AntProjectNode;
+import org.elastic.jdt.ls.core.internal.ant.AntTaskNode;
 
 public class AntProjectImporter extends AbstractProjectImporter {
 
