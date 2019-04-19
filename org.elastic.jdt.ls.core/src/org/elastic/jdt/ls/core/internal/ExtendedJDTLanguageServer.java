@@ -12,14 +12,20 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.ls.core.internal.CancellableProgressMonitor;
+import org.eclipse.jdt.ls.core.internal.handlers.InitHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentLifeCycleHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer;
 import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
+import org.eclipse.jdt.ls.core.internal.JobHelpers;
+import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.elastic.jdt.ls.core.internal.EDefinitionHandler;
 import org.eclipse.lsp4j.DidChangeWorkspaceFoldersParams;
 import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.InitializeParams;
+import org.eclipse.lsp4j.InitializeResult;
+import org.eclipse.lsp4j.InitializedParams;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.ReferenceParams;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
@@ -42,10 +48,25 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 	}
 
 	@Override
+	public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
+		CompletableFuture<InitializeResult> result = super.initialize(params);
+		BuildPathHelper pathHelper = new BuildPathHelper(ResourceUtils.canonicalFilePathFromURI(params.getRootUri()), super.getClientConnection());
+		pathHelper.IncludeAllJavaFiles();
+		return result;
+	}
+
+	@Override
 	public void didChangeWorkspaceFolders(DidChangeWorkspaceFoldersParams params) {
 		logInfo(">> java/didChangeWorkspaceFolders");
 		SynchronizedWorkspaceFolderChangeHandler handler = new SynchronizedWorkspaceFolderChangeHandler(pm);
 		handler.update(params);
+		BuildPathHelper pathHelper = new BuildPathHelper(ResourceUtils.canonicalFilePathFromURI(params.getEvent().getAdded().get(0).getUri()), super.getClientConnection());
+		pathHelper.IncludeAllJavaFiles();
+		try {
+			Job.getJobManager().join(InitHandler.JAVA_LS_INITIALIZATION_JOBS, null);
+		} catch (OperationCanceledException | InterruptedException e) {
+			JavaLanguageServerPlugin.logException(e.getMessage(), e);
+		}
 	}
 
 	@Override
