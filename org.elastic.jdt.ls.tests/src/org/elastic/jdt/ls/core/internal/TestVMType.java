@@ -73,7 +73,7 @@ public class TestVMType extends AbstractVMInstallType {
 			File file = URIUtil.toFile(URIUtil.toURI(url));
 			return file;
 		} catch (IOException | URISyntaxException e) {
-			JavaLanguageServerPlugin.logException(e.getMessage(), e);
+			ElasticJavaLanguageServerPlugin.logException(e.getMessage(), e);
 			return null;
 		}
 	}
@@ -109,7 +109,7 @@ class TestVMInstall extends AbstractVMInstall {
 		try {
 			javadoc = new URL("https://docs.oracle.com/javase/" + id.replace("1.", "") + "/docs/api/");
 		} catch (MalformedURLException e) {
-			JavaLanguageServerPlugin.logException(e.getMessage(), e);
+			ElasticJavaLanguageServerPlugin.logException(e.getMessage(), e);
 		}
 	}
 

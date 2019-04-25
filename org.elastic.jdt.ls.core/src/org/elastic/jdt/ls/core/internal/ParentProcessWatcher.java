@@ -19,11 +19,11 @@ public final class ParentProcessWatcher implements Runnable, Function<MessageCon
 	private static final long INACTIVITY_DELAY_SECS = 30 *1000;
 	private static final int POLL_DELAY_SECS = 2;
 	private volatile long lastActivityTime;
-	private final LanguageServer server;
+	private final ElasticLanguageServer server;
 	private ScheduledFuture<?> task;
 	private ScheduledExecutorService service;
 
-	public ParentProcessWatcher(LanguageServer server ) {
+	public ParentProcessWatcher(ElasticLanguageServer server ) {
 		this.server = server;
 		service = Executors.newScheduledThreadPool(1);
 		task =  service.scheduleWithFixedDelay(this, POLL_DELAY_SECS, POLL_DELAY_SECS, TimeUnit.SECONDS);
@@ -60,7 +60,7 @@ public final class ParentProcessWatcher implements Runnable, Function<MessageCon
 			int processResult = process.waitFor();
 			return processResult == 0;
 		} catch (IOException | InterruptedException e) {
-			JavaLanguageServerPlugin.logException(e.getMessage(), e);
+			ElasticJavaLanguageServerPlugin.logException(e.getMessage(), e);
 			return true;
 		}
 	}

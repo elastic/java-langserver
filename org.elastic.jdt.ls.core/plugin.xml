@@ -9,7 +9,7 @@
             thread="main"
             visible="true">
          <run
-               class="org.elastic.jdt.ls.core.internal.LanguageServer">
+               class="org.elastic.jdt.ls.core.internal.ElasticLanguageServer">
          </run>
       </application>
    </extension>
