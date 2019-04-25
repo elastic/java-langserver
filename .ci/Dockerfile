@@ -26,6 +26,8 @@ USER node
 
 RUN yarn kbn bootstrap
 
+RUN yarn add git-hash-package
+
 USER root
 
 ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
