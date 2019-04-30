@@ -15,6 +15,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
@@ -107,7 +108,9 @@ public class BuildPathHelper {
 	private void includeJavaFiles(InfoRecorder infoRecorder) {
 		if (infoRecorder.shouldBeIncluded) {
 			try {
-				ProjectUtils.addSourcePath(infoRecorder.sourcePath, new IPath[0], infoRecorder.javaProject);
+				if (infoRecorder.javaProject != null) {
+					ProjectUtils.addSourcePath(infoRecorder.sourcePath, new IPath[0], infoRecorder.javaProject);
+				}
 			} catch (CoreException e) {
 				JavaLanguageServerPlugin.logException("Fail to add source:" + infoRecorder.dir.getPath(), e);
 			}
@@ -154,6 +157,15 @@ public class BuildPathHelper {
 				this.javaProject = JavaCore.create(project);
 				IPath relativeSourcePath = path.makeRelativeTo(project.getLocation());
 				this.sourcePath = relativeSourcePath.isEmpty() ? project.getFullPath() : project.getFolder(relativeSourcePath).getFullPath();
+			} else {
+				IPath workspaceRoot = ProjectUtils.findBelongedWorkspaceRoot(path);
+				if (workspaceRoot != null) {
+					try {
+						this.javaProject = JavaCore.create(ProjectUtils.createInvisibleProjectIfNotExist(workspaceRoot));
+					} catch (OperationCanceledException | CoreException e) {
+						JavaLanguageServerPlugin.logException("Failed to create invisible project for " + workspaceRoot.toString(), e);
+					}
+				}
 			}
 		}
 		
