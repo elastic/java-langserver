@@ -89,7 +89,7 @@ public class ExtendedReferencesHandler {
 			}, monitor);
 
 		} catch (CoreException e) {
-			JavaLanguageServerPlugin.logException("Find references failure ", e);
+			ElasticJavaLanguageServerPlugin.logException("Find references failure ", e);
 		}
 		return locations;
 	}

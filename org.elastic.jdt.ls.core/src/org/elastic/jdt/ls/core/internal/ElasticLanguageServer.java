@@ -3,7 +3,7 @@ package org.elastic.jdt.ls.core.internal;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 
-public class LanguageServer implements IApplication {
+public class ElasticLanguageServer implements IApplication {
 
   private volatile boolean shutdown;
   private long parentProcessId;
@@ -12,15 +12,15 @@ public class LanguageServer implements IApplication {
 	@Override
 	public Object start(IApplicationContext context) throws Exception {
 
-    JavaLanguageServerPlugin.startLanguageServer(this);
+    ElasticJavaLanguageServerPlugin.startLanguageServer(this);
     synchronized(waitLock){
           while (!shutdown) {
             try {
               context.applicationRunning();
-              JavaLanguageServerPlugin.logInfo("Main thread is waiting");
+              ElasticJavaLanguageServerPlugin.logInfo("Main thread is waiting");
               waitLock.wait();
             } catch (InterruptedException e) {
-            	JavaLanguageServerPlugin.logException(e.getMessage(), e);
+            	ElasticJavaLanguageServerPlugin.logException(e.getMessage(), e);
             }
           }
     }
@@ -36,7 +36,7 @@ public class LanguageServer implements IApplication {
 
 	public void exit() {
     shutdown = true;
-    JavaLanguageServerPlugin.logInfo("Shutdown received... waking up main thread");
+    ElasticJavaLanguageServerPlugin.logInfo("Shutdown received... waking up main thread");
     synchronized(waitLock){
       waitLock.notifyAll();
     }

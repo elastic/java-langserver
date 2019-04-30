@@ -54,7 +54,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.util.tracker.ServiceTracker;
 
-public class JavaLanguageServerPlugin extends Plugin {
+public class ElasticJavaLanguageServerPlugin extends Plugin {
 
 	public static final String MANUAL = "Manual";
 	public static final String HTTP_NON_PROXY_HOSTS = "http.nonProxyHosts";
@@ -79,28 +79,28 @@ public class JavaLanguageServerPlugin extends Plugin {
 	@Deprecated
 	public static final String PLUGIN_ID = IConstants.PLUGIN_ID;
 
-	private static JavaLanguageServerPlugin pluginInstance;
+	private static ElasticJavaLanguageServerPlugin pluginInstance;
 	private static BundleContext context;
 	private ServiceTracker<IProxyService, IProxyService> proxyServiceTracker = null;
 	private static InputStream in;
 	private static PrintStream out;
 	private static PrintStream err;
 
-	private LanguageServer languageServer;
+	private ElasticLanguageServer languageServer;
 	private ProjectsManager projectsManager;
 	private DigestStore digestStore;
 	private ContentProviderManager contentProviderManager;
 
-	private ExtendedJDTLanguageServer protocol;
+	private ElasticJDTLanguageServer protocol;
 
 	private PreferenceManager preferenceManager;
 
-	public static LanguageServer getLanguageServer() {
+	public static ElasticLanguageServer getLanguageServer() {
 		return pluginInstance == null ? null : pluginInstance.languageServer;
 	}
 
 	public static BundleContext getBundleContext() {
-		return JavaLanguageServerPlugin.context;
+		return ElasticJavaLanguageServerPlugin.context;
 	}
 
 	/*
@@ -120,8 +120,8 @@ public class JavaLanguageServerPlugin extends Plugin {
 		} catch (FileNotFoundException e) {
 			logException(e.getMessage(), e);
 		}
-		JavaLanguageServerPlugin.context = bundleContext;
-		JavaLanguageServerPlugin.pluginInstance = this;
+		ElasticJavaLanguageServerPlugin.context = bundleContext;
+		ElasticJavaLanguageServerPlugin.pluginInstance = this;
 		// Set the ID to use for preference lookups
 		preferenceManager = new PreferenceManager();
 		initializeJDTOptions();
@@ -239,7 +239,7 @@ public class JavaLanguageServerPlugin extends Plugin {
 	}
 
 	private void startConnection() throws IOException {
-		protocol = new ExtendedJDTLanguageServer(this.getProjectsManager(), this.getPreferencesManager());
+		protocol = new ElasticJDTLanguageServer(this.getProjectsManager(), this.getPreferencesManager());
 		ConnectionStreamFactory connectionFactory = new ConnectionStreamFactory();
 		Launcher<JavaLanguageClient> launcher = Launcher.createLauncher(protocol,
 																		JavaLanguageClient.class,
@@ -257,8 +257,8 @@ public class JavaLanguageServerPlugin extends Plugin {
 	@Override
 	public void stop(BundleContext bundleContext) throws Exception {
 		logInfo(getClass() + " is stopping:");
-		JavaLanguageServerPlugin.pluginInstance = null;
-		JavaLanguageServerPlugin.context = null;
+		ElasticJavaLanguageServerPlugin.pluginInstance = null;
+		ElasticJavaLanguageServerPlugin.context = null;
 		ResourcesPlugin.getWorkspace().removeSaveParticipant(PLUGIN_ID);
 		projectsManager = null;
 		contentProviderManager = null;
@@ -269,13 +269,13 @@ public class JavaLanguageServerPlugin extends Plugin {
 		return this.protocol.getWorkingCopyOwner();
 	}
 
-	public static JavaLanguageServerPlugin getInstance() {
+	public static ElasticJavaLanguageServerPlugin getInstance() {
 		return pluginInstance;
 	}
 
 	public static void log(IStatus status) {
 		if (context != null) {
-			Platform.getLog(JavaLanguageServerPlugin.context.getBundle()).log(status);
+			Platform.getLog(ElasticJavaLanguageServerPlugin.context.getBundle()).log(status);
 		}
 	}
 
@@ -307,7 +307,7 @@ public class JavaLanguageServerPlugin extends Plugin {
 		}
 	}
 
-	static void startLanguageServer(LanguageServer newLanguageServer) throws IOException {
+	static void startLanguageServer(ElasticLanguageServer newLanguageServer) throws IOException {
 		if (pluginInstance != null) {
 			pluginInstance.languageServer = newLanguageServer;
 			pluginInstance.startConnection();
@@ -387,8 +387,8 @@ public class JavaLanguageServerPlugin extends Plugin {
 	}
 
 	public static PreferenceManager getPreferencesManager() {
-		if (JavaLanguageServerPlugin.pluginInstance != null) {
-			return JavaLanguageServerPlugin.pluginInstance.preferenceManager;
+		if (ElasticJavaLanguageServerPlugin.pluginInstance != null) {
+			return ElasticJavaLanguageServerPlugin.pluginInstance.preferenceManager;
 		}
 		return null;
 	}
@@ -409,7 +409,7 @@ public class JavaLanguageServerPlugin extends Plugin {
 		}
 	}
 
-	public void setProtocol(ExtendedJDTLanguageServer protocol) {
+	public void setProtocol(ElasticJDTLanguageServer protocol) {
 		this.protocol = protocol;
 	}
 

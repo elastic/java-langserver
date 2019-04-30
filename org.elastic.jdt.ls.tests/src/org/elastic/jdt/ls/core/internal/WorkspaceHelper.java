@@ -23,7 +23,7 @@ public final class WorkspaceHelper {
 	}
 
 	public static void initWorkspace() throws CoreException {
-		JavaLanguageServerPlugin.getProjectsManager().initializeProjects(Collections.emptyList(), new NullProgressMonitor());
+		ElasticJavaLanguageServerPlugin.getProjectsManager().initializeProjects(Collections.emptyList(), new NullProgressMonitor());
 		assertEquals(1, getAllProjects().size());
 	}
 
@@ -48,7 +48,7 @@ public final class WorkspaceHelper {
 		try {
 			project.delete(true, new NullProgressMonitor());
 		} catch (CoreException e) {
-			JavaLanguageServerPlugin.logException(e.getMessage(), e);
+			ElasticJavaLanguageServerPlugin.logException(e.getMessage(), e);
 		}
 	}
 

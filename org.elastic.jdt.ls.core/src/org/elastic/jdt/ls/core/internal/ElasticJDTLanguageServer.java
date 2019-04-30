@@ -1,6 +1,6 @@
 package org.elastic.jdt.ls.core.internal;
 
-import static org.elastic.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
+import static org.elastic.jdt.ls.core.internal.ElasticJavaLanguageServerPlugin.logInfo;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -33,7 +33,9 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.CompletableFutures;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 
-public class ExtendedJDTLanguageServer extends JDTLanguageServer {
+import org.elastic.jdt.ls.core.internal.ElasticJavaLanguageServerPlugin;
+
+public class ElasticJDTLanguageServer extends JDTLanguageServer {
 
 	private static final int FORCED_EXIT_CODE = 1;
 
@@ -41,7 +43,7 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 
 	private PreferenceManager preferenceManager;
 
-	public ExtendedJDTLanguageServer(ProjectsManager projects, PreferenceManager preferenceManager) {
+	public ElasticJDTLanguageServer(ProjectsManager projects, PreferenceManager preferenceManager) {
 		super(JavaLanguageServerPlugin.getProjectsManager(), JavaLanguageServerPlugin.getPreferencesManager());
 		this.pm = JavaLanguageServerPlugin.getProjectsManager();
 		this.preferenceManager = JavaLanguageServerPlugin.getPreferencesManager();
@@ -49,6 +51,7 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 
 	@Override
 	public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
+		logInfo("Elastic Java Language Server version: " + ElasticJavaLanguageServerPlugin.getVersion());
 		CompletableFuture<InitializeResult> result = super.initialize(params);
 		BuildPathHelper pathHelper = new BuildPathHelper(ResourceUtils.canonicalFilePathFromURI(params.getRootUri()), super.getClientConnection());
 		pathHelper.IncludeAllJavaFiles();
@@ -101,7 +104,7 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 	@Override
 	public void exit() {
 		logInfo(">> exit");
-		org.elastic.jdt.ls.core.internal.JavaLanguageServerPlugin.getLanguageServer().exit();
+		org.elastic.jdt.ls.core.internal.ElasticJavaLanguageServerPlugin.getLanguageServer().exit();
 		Executors.newSingleThreadScheduledExecutor().schedule(() -> {
 			logInfo("Forcing exit after 1 min.");
 			System.exit(FORCED_EXIT_CODE);

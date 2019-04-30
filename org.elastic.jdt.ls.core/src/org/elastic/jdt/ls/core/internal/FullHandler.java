@@ -65,7 +65,7 @@ public class FullHandler {
 			}
 			return new Full(symbols, references);
 		} catch (JavaModelException e) {
-			JavaLanguageServerPlugin.logException("Problem getting outline for" +  unit.getElementName(), e);
+			ElasticJavaLanguageServerPlugin.logException("Problem getting outline for" +  unit.getElementName(), e);
 			if (e.getMessage().indexOf("exist") != -1) {
 				throw new RuntimeException("temporarily unavailable");
 			}
@@ -250,7 +250,7 @@ public class FullHandler {
 					}
 				} catch (JavaModelException e) {
 					// TODO Auto-generated catch block
-					JavaLanguageServerPlugin.logException("Find references failure ", e);
+					ElasticJavaLanguageServerPlugin.logException("Find references failure ", e);
 				}
 			}
 
