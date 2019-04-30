@@ -52,6 +52,12 @@ public class ExtendedJDTLanguageServer extends JDTLanguageServer {
 		CompletableFuture<InitializeResult> result = super.initialize(params);
 		BuildPathHelper pathHelper = new BuildPathHelper(ResourceUtils.canonicalFilePathFromURI(params.getRootUri()), super.getClientConnection());
 		pathHelper.IncludeAllJavaFiles();
+		// change this method to a synchronized way
+		try {
+			Job.getJobManager().join(InitHandler.JAVA_LS_INITIALIZATION_JOBS, null);
+		} catch (OperationCanceledException | InterruptedException e) {
+			JavaLanguageServerPlugin.logException(e.getMessage(), e);
+		}
 		return result;
 	}
 
