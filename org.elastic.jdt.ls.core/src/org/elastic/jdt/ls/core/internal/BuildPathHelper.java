@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.FilenameUtils;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
@@ -108,8 +109,8 @@ public class BuildPathHelper {
 	private void includeJavaFiles(InfoRecorder infoRecorder) {
 		if (infoRecorder.shouldBeIncluded) {
 			try {
-				if (infoRecorder.javaProject != null) {
-					ProjectUtils.addSourcePath(infoRecorder.sourcePath, new IPath[0], infoRecorder.javaProject);
+				if (infoRecorder.javaProject != null && infoRecorder.sourcePath != null) {
+					ProjectUtils.addSourcePath(infoRecorder.sourcePath, infoRecorder.exclusionPath, infoRecorder.javaProject);
 				}
 			} catch (CoreException e) {
 				JavaLanguageServerPlugin.logException("Fail to add source:" + infoRecorder.dir.getPath(), e);
@@ -146,6 +147,7 @@ public class BuildPathHelper {
 		File dir;
 		IPath sourcePath;
 		IJavaProject javaProject;
+		IPath[] exclusionPath = new IPath[0];
 		boolean shouldBeIncluded = false;
 		List<InfoRecorder> children = new ArrayList<InfoRecorder>();
 		
@@ -161,7 +163,16 @@ public class BuildPathHelper {
 				IPath workspaceRoot = ProjectUtils.findBelongedWorkspaceRoot(path);
 				if (workspaceRoot != null) {
 					try {
-						this.javaProject = JavaCore.create(ProjectUtils.createInvisibleProjectIfNotExist(workspaceRoot));
+						project = ProjectUtils.createInvisibleProjectIfNotExist(workspaceRoot);
+						this.javaProject = JavaCore.create(project);
+						final IFolder workspaceLink = project.getFolder(ProjectUtils.WORKSPACE_LINK);
+						List<IProject> subProjects = ProjectUtils.getVisibleProjects(workspaceRoot);
+						this.exclusionPath = subProjects.stream().map(subProject -> {
+							IPath relativePath = subProject.getLocation().makeRelativeTo(workspaceRoot);
+							return workspaceLink.getFolder(relativePath).getFullPath();
+						}).toArray(IPath[]::new);
+						IPath relativeSourcePath = path.makeRelativeTo(workspaceRoot);
+						this.sourcePath = relativeSourcePath.isEmpty() ? workspaceLink.getFullPath() : workspaceLink.getFolder(relativeSourcePath).getFullPath();
 					} catch (OperationCanceledException | CoreException e) {
 						JavaLanguageServerPlugin.logException("Failed to create invisible project for " + workspaceRoot.toString(), e);
 					}
