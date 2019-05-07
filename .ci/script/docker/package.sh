@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if [ $# -eq 0 ]; then 
+if [ $# -eq 0 ]; then
     echo "deploy snapshot package.."
     KIBANA_VERSION=8.0.0
     DESTINATION=snapshot/
@@ -22,10 +22,23 @@ fi
 
 docker build --rm -f ".ci/Dockerfile" --build-arg KIBANA_VERSION=$KIBANA_VERSION -t code-lsp-java-langserver-ci:latest .ci
 
+KIBANA_MOUNT_ARGUMENT=""
+if [[ -n $KIBANA_MOUNT ]]; then
+    if [[ -d $KIBANA_MOUNT ]]; then
+        echo "KIBANA_MOUNT '$KIBANA_MOUNT' will be used as the kibana source for the build."
+        ABSOLUTE_KIBANA_MOUNT=$(realpath "$KIBANA_MOUNT")
+        KIBANA_MOUNT_ARGUMENT=-v\ "$ABSOLUTE_KIBANA_MOUNT:/plugin/kibana"
+    else
+        echo "KIBANA_MOUNT '$KIBANA_MOUNT' is not a directory, aborting."
+        exit 1
+    fi
+fi
+
 docker run \
     --rm -t $(tty &>/dev/null && echo "-i") \
     -v "$(pwd):/plugin/kibana-extra/java-langserver" \
     -v "$HOME/.m2":/root/.m2 \
+    $KIBANA_MOUNT_ARGUMENT \
     code-lsp-java-langserver-ci \
     /bin/bash -c "set -x && \
                   $CMD
@@ -36,7 +49,7 @@ docker run \
                   jq '.version=\"\\(.version)-windows\"' package.json > package-windows.json && \
                   mkdir packages
                   for PLATFORM in linux darwin windows
-                  do 
+                  do
                       mv org.elastic.jdt.ls.product/distro/jdt-language-server*\$PLATFORM* lib
                       mv package-\$PLATFORM.json package.json
                       echo $KIBANA_VERSION | ../../kibana/packages/kbn-plugin-helpers/bin/plugin-helpers.js build
@@ -44,5 +57,4 @@ docker run \
                       [ -e ./lib ] && rm -rf ./lib
                   done"
 
- ls ./packages
-                  
+ls ./packages
