@@ -5,7 +5,7 @@ if [ $# -eq 0 ]; then
     echo "deploy snapshot package.."
     KIBANA_VERSION=8.0.0
     DESTINATION=snapshot/
-    CMD="./mvnw clean verify -B -e && \\"
+    CMD="./mvnw clean verify -B -e"
 elif [ $# -eq 2 ]; then
     echo "deploy release package.."
     echo "plugin version: $1"
@@ -14,7 +14,7 @@ elif [ $# -eq 2 ]; then
     KIBANA_VERSION=$2
     DESTINATION=release/
     CMD="./mvnw -Dtycho.mode=maven -DnewVersion=$VERSION -D-Pserver-distro org.eclipse.tycho:tycho-versions-plugin:set-version && \
-         jq '.version=\"$VERSION\"' package.json > tmp && mv tmp package.json && \\"
+         jq '.version=\"$VERSION\"' package.json > tmp && mv tmp package.json"
 else
     echo "Wrong number of parameters!"
     exit 2
@@ -40,19 +40,37 @@ docker run \
     -v "$HOME/.m2":/root/.m2 \
     $KIBANA_MOUNT_ARGUMENT \
     code-lsp-java-langserver-ci \
-    /bin/bash -c "set -x && \
+    /bin/bash -c "set -ex
+
+                  # if the kibana repo is mounted from disk run the yarn
+                  # commands as the node user to prepare it for the build
+                  if test -n '$KIBANA_MOUNT_ARGUMENT'; then
+                    (
+                      cd /plugin/kibana
+                      su --command 'yarn kbn bootstrap' node
+                      su --command 'yarn add git-hash-package' node
+                    )
+                  fi
+                  # fail fast if required kibana files are missing
+                  for file in /plugin/kibana/node_modules/git-hash-package/index.js /plugin/kibana/packages/kbn-plugin-helpers/bin/plugin-helpers.js; do
+                    if ! test -f \$file; then
+                      echo \"Missing required \$file, aborting.\"
+                      exit 1
+                    fi
+                  done
+
                   $CMD
-                  ./mvnw -DskipTests=true clean deploy -DaltDeploymentRepository=dev::default::file:./repository -B -e -Pserver-distro && \
-                  ../../kibana/node_modules/git-hash-package/index.js && \
-                  jq '.version=\"\\(.version)-linux\"' package.json > package-linux.json && \
-                  jq '.version=\"\\(.version)-darwin\"' package.json > package-darwin.json && \
-                  jq '.version=\"\\(.version)-windows\"' package.json > package-windows.json && \
+                  ./mvnw -DskipTests=true clean deploy -DaltDeploymentRepository=dev::default::file:./repository -B -e -Pserver-distro
+                  /plugin/kibana/node_modules/git-hash-package/index.js
+                  jq '.version=\"\\(.version)-linux\"' package.json > package-linux.json
+                  jq '.version=\"\\(.version)-darwin\"' package.json > package-darwin.json
+                  jq '.version=\"\\(.version)-windows\"' package.json > package-windows.json
                   mkdir packages
                   for PLATFORM in linux darwin windows
                   do
                       mv org.elastic.jdt.ls.product/distro/jdt-language-server*\$PLATFORM* lib
                       mv package-\$PLATFORM.json package.json
-                      echo $KIBANA_VERSION | ../../kibana/packages/kbn-plugin-helpers/bin/plugin-helpers.js build
+                      echo $KIBANA_VERSION | /plugin/kibana/packages/kbn-plugin-helpers/bin/plugin-helpers.js build
                       mv build/java-langserver*.zip packages
                       [ -e ./lib ] && rm -rf ./lib
                   done"
