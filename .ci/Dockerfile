@@ -2,14 +2,7 @@ FROM node:10.15.2
 
 ARG KIBANA_VERSION
 
-WORKDIR /plugin
-
 USER root
-
-RUN echo "===> Cloning Kibana v$KIBANA_VERSION" \
-  && git clone --depth 1 -b master https://github.com/elastic/kibana.git
-
-WORKDIR /plugin/kibana
 
 RUN set -ex && \
 wget -O get-pip.py 'https://bootstrap.pypa.io/get-pip.py' && \
@@ -18,21 +11,33 @@ python get-pip.py \
 		--no-cache-dir && \
 rm -f get-pip.py && \
 apt-get update && apt-get install -y openjdk-8-jdk jq make python-dev && \
-pip install --upgrade awscli==1.14.5 s3cmd==2.0.1 python-magic && \
+pip --no-cache-dir install --upgrade awscli==1.14.5 s3cmd==2.0.1 python-magic && \
 update-java-alternatives --jre-headless --jre --set java-1.8.0-openjdk-amd64 && \
-chown -R node:node /plugin
+apt-get -qq -y autoremove && \
+apt-get -qq -y clean && \
+rm -rf /var/lib/apt/lists/*
 
-USER node
+####
+# Build CI User
+###
+ARG CI_USER_UID=13000
+ENV CI_USER ciagent
+ENV CI_GROUP ciagent
+ENV HOME /home/${CI_USER}
 
-RUN yarn kbn bootstrap
+# - Create user and group with specific ids
+# - Create needed directories
+RUN useradd --create-home --user-group -u ${CI_USER_UID} --shell /bin/bash ${CI_USER} \
+   && mkdir -p ${HOME}/.aws  \
+   && mkdir -p ${HOME}/.m2 \
+   && chown -R ${CI_USER}:${CI_GROUP} ${HOME}
 
-RUN yarn add git-hash-package
-
-USER root
+USER ${CI_USER}
 
 ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
 
-VOLUME /root/.aws
-VOLUME /root/.m2
+VOLUME /home/ciagent/.aws
+VOLUME /home/ciagent/.m2
+VOLUME /plugin/kibana
 VOLUME /plugin/kibana-extra/java-langserver
 WORKDIR /plugin/kibana-extra/java-langserver

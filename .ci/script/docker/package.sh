@@ -20,24 +20,32 @@ else
     exit 2
 fi
 
-docker build --rm -f ".ci/Dockerfile" --build-arg KIBANA_VERSION=$KIBANA_VERSION -t code-lsp-java-langserver-ci:latest .ci
+docker build --rm -f ".ci/Dockerfile" --build-arg CI_USER_UID=$(id -u) --build-arg KIBANA_VERSION=$KIBANA_VERSION -t code-lsp-java-langserver-ci:latest .ci
 
 KIBANA_MOUNT_ARGUMENT=""
 if [[ -n $KIBANA_MOUNT ]]; then
     if [[ -d $KIBANA_MOUNT ]]; then
         echo "KIBANA_MOUNT '$KIBANA_MOUNT' will be used as the kibana source for the build."
-        ABSOLUTE_KIBANA_MOUNT=$(realpath "$KIBANA_MOUNT")
-        KIBANA_MOUNT_ARGUMENT=-v\ "$ABSOLUTE_KIBANA_MOUNT:/plugin/kibana"
     else
         echo "KIBANA_MOUNT '$KIBANA_MOUNT' is not a directory, aborting."
         exit 1
     fi
+else
+  # if the Kibana source repo is not set as KIBANA_MOUNT, we clone the repo
+  echo "===> Cloning Kibana v$KIBANA_VERSION"
+  git clone --depth 1 -b master https://github.com/elastic/kibana.git "$(pwd)/kibana"
+  KIBANA_MOUNT="$(pwd)/kibana"
 fi
+
+
+ABSOLUTE_KIBANA_MOUNT=$(realpath "$KIBANA_MOUNT")
+KIBANA_MOUNT_ARGUMENT=-v\ "$ABSOLUTE_KIBANA_MOUNT:/plugin/kibana:rw"
 
 docker run \
     --rm -t $(tty &>/dev/null && echo "-i") \
-    -v "$(pwd):/plugin/kibana-extra/java-langserver" \
-    -v "$HOME/.m2":/root/.m2 \
+    --user $(id -u):ciagent \
+    -v "$(pwd):/plugin/kibana-extra/java-langserver:rw" \
+    -v "$HOME/.m2":/home/ciagent/.m2 \
     $KIBANA_MOUNT_ARGUMENT \
     code-lsp-java-langserver-ci \
     /bin/bash -c "set -ex
@@ -47,8 +55,8 @@ docker run \
                   if test -n '$KIBANA_MOUNT_ARGUMENT'; then
                     (
                       cd /plugin/kibana
-                      su --command 'yarn kbn bootstrap' node
-                      su --command 'yarn add git-hash-package' node
+                      yarn kbn bootstrap
+                      yarn add git-hash-package
                     )
                   fi
                   # fail fast if required kibana files are missing
