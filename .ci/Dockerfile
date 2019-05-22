@@ -15,10 +15,15 @@ apt-get -qq -y autoremove && \
 apt-get -qq -y clean && \
 rm -rf /var/lib/apt/lists/*
 
+# Update the current node user id (1000)
+# because it might be the CI user id we want
+# to create.
+RUN usermod -u 15000 node
+
 ####
 # Build CI User
 ###
-ARG CI_USER_UID=13000
+ARG CI_USER_UID=1000
 ENV CI_USER ciagent
 ENV CI_GROUP ciagent
 ENV HOME /home/${CI_USER}
