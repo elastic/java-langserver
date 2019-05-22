@@ -33,7 +33,7 @@ if [[ -n $KIBANA_MOUNT ]]; then
 else
   # if the Kibana source repo is not set as KIBANA_MOUNT, we clone the repo
   echo "===> Cloning Kibana v$KIBANA_VERSION"
-  git clone --depth 1 -b 7.x https://github.com/elastic/kibana.git "$(pwd)/kibana"
+  git clone --depth 1 -b 7.2 https://github.com/elastic/kibana.git "$(pwd)/kibana"
   KIBANA_MOUNT="$(pwd)/kibana"
 fi
 
