@@ -45,7 +45,7 @@ docker run \
     --rm -t $(tty &>/dev/null && echo "-i") \
     --user $(id -u):ciagent \
     -v "$(pwd):/plugin/kibana-extra/java-langserver:rw" \
-    -v "$HOME/.m2":/home/ciagent/.m2 \
+    --mount source=m2-vol,destination=/home/ciagent/.m2 \
     $KIBANA_MOUNT_ARGUMENT \
     code-lsp-java-langserver-ci \
     /bin/bash -c "set -ex
