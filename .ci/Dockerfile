@@ -1,7 +1,5 @@
 FROM node:10.15.2
 
-ARG KIBANA_VERSION
-
 USER root
 
 RUN set -ex && \

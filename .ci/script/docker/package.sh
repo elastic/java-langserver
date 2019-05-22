@@ -20,7 +20,7 @@ else
     exit 2
 fi
 
-docker build --rm -f ".ci/Dockerfile" --build-arg CI_USER_UID=$(id -u) --build-arg KIBANA_VERSION=$KIBANA_VERSION -t code-lsp-java-langserver-ci:latest .ci
+docker build --rm -f ".ci/Dockerfile" --build-arg CI_USER_UID=$(id -u) -t code-lsp-java-langserver-ci:latest .ci
 
 KIBANA_MOUNT_ARGUMENT=""
 if [[ -n $KIBANA_MOUNT ]]; then
