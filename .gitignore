@@ -20,3 +20,4 @@ target.p2
 npm-debug.log*
 node_modules
 **/build/
+kibana
