@@ -12,7 +12,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.ls.core.internal.CancellableProgressMonitor;
-import org.eclipse.jdt.ls.core.internal.handlers.InitHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentLifeCycleHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer;
 import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
@@ -25,10 +24,10 @@ import org.eclipse.lsp4j.DidChangeWorkspaceFoldersParams;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
-import org.eclipse.lsp4j.InitializedParams;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.ReferenceParams;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
+import org.eclipse.lsp4j.WorkspaceFolder;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.CompletableFutures;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
@@ -52,27 +51,31 @@ public class ElasticJDTLanguageServer extends JDTLanguageServer {
 	@Override
 	public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
 		logInfo("Elastic Java Language Server version: " + ElasticJavaLanguageServerPlugin.getVersion());
-		CompletableFuture<InitializeResult> result = super.initialize(params);
+		ExtendedInitHandler handler = new ExtendedInitHandler(pm, preferenceManager);
+		InitializeResult result = handler.initialize(params);
 		BuildPathHelper pathHelper = new BuildPathHelper(ResourceUtils.canonicalFilePathFromURI(params.getRootUri()), super.getClientConnection());
 		pathHelper.IncludeAllJavaFiles();
 		// change this method to a synchronized way
 		try {
-			Job.getJobManager().join(InitHandler.JAVA_LS_INITIALIZATION_JOBS, null);
+			Job.getJobManager().join(ExtendedInitHandler.JAVA_LS_INITIALIZATION_JOBS, null);
 		} catch (OperationCanceledException | InterruptedException e) {
 			JavaLanguageServerPlugin.logException(e.getMessage(), e);
 		}
-		return result;
+		return CompletableFuture.completedFuture(result);
 	}
 
 	@Override
 	public void didChangeWorkspaceFolders(DidChangeWorkspaceFoldersParams params) {
 		logInfo(">> java/didChangeWorkspaceFolders");
+		// cancel the removed workspace initialization
+		List<WorkspaceFolder> removed = params.getEvent().getRemoved();
+		removed.forEach(w -> ExtendedInitHandler.cancelInitJobFromURI(w.getUri()));
 		SynchronizedWorkspaceFolderChangeHandler handler = new SynchronizedWorkspaceFolderChangeHandler(pm);
 		handler.update(params);
 		BuildPathHelper pathHelper = new BuildPathHelper(ResourceUtils.canonicalFilePathFromURI(params.getEvent().getAdded().get(0).getUri()), super.getClientConnection());
 		pathHelper.IncludeAllJavaFiles();
 		try {
-			Job.getJobManager().join(InitHandler.JAVA_LS_INITIALIZATION_JOBS, null);
+			Job.getJobManager().join(ExtendedInitHandler.JAVA_LS_INITIALIZATION_JOBS, null);
 		} catch (OperationCanceledException | InterruptedException e) {
 			JavaLanguageServerPlugin.logException(e.getMessage(), e);
 		}
