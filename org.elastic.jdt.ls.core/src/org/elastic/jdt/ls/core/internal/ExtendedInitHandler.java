@@ -67,7 +67,7 @@ final public class ExtendedInitHandler {
 	}
 
 	@SuppressWarnings("unchecked")
-	InitializeResult initialize(InitializeParams param) {
+	public InitializeResult initialize(InitializeParams param) {
 		logInfo("Initializing Java Language Server " + JavaLanguageServerPlugin.getVersion());
 		Map<?, ?> initializationOptions = this.getInitializationOptions(param);
 		Map<String, Object> extendedClientCapabilities = getInitializationOption(initializationOptions, "extendedClientCapabilities", Map.class);
@@ -228,8 +228,9 @@ final public class ExtendedInitHandler {
 	
 	public static void cancelInitJobFromURI(String uri) {
 		IPath rootName = ResourceUtils.canonicalFilePathFromURI(uri);
-		Job[] jobs = Job.getJobManager().find(rootName);
+        Job[] jobs = Job.getJobManager().find(rootName);
 		for (Job job: jobs) {
+            JavaLanguageServerPlugin.logInfo("Cancel init job: " +  job.toString());
 			job.cancel();
 		}
 	}
