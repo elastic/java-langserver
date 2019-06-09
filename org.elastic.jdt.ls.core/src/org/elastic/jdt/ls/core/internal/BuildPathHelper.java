@@ -32,10 +32,12 @@ import org.eclipse.jdt.ls.core.internal.handlers.InitHandler;
 
 public class BuildPathHelper {
 	
+	private final IPath root;
 	private final InfoRecorder rootInfoRecorder;
 	private JavaClientConnection connection;
 	
 	public BuildPathHelper(IPath rootPath, JavaClientConnection connection) {
+		this.root = rootPath;
 		this.rootInfoRecorder = new InfoRecorder(rootPath.toFile());
 		this.connection = connection;
 	}
@@ -61,7 +63,7 @@ public class BuildPathHelper {
 			
 			@Override
 			public boolean belongsTo(Object family) {
-				return InitHandler.JAVA_LS_INITIALIZATION_JOBS.equals(family);
+				return ExtendedInitHandler.JAVA_LS_INITIALIZATION_JOBS.equals(family) || root.equals(family);
 			}
 			
 		};

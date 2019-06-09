@@ -227,28 +227,21 @@ final public class ExtendedInitHandler {
 	}
 	
 	public static void cancelInitJobFromURI(String uri) {
-		String rootName = ResourceUtils.canonicalFilePathFromURI(uri).toString();
-		Job[] jobs = Job.getJobManager().find(JAVA_LS_INITIALIZATION_JOBS);
+		IPath rootName = ResourceUtils.canonicalFilePathFromURI(uri);
+		Job[] jobs = Job.getJobManager().find(rootName);
 		for (Job job: jobs) {
-			String[] splitName = job.getName().split(":");
-			if (splitName.length == 2) {
-				String rootsName = splitName[1];
-				if (rootsName.contains(rootName)) {
-					job.cancel();
-				}
-			}
+			job.cancel();
 		}
 	}
 
 	private void triggerInitialization(Collection<IPath> roots) {
-		String rootsName =  String.join(",", roots.stream().map(r -> r.toString()).collect(Collectors.toList()));
-		Job job = new WorkspaceJob("Initialize Workspace:" + rootsName) {
+		Job job = new WorkspaceJob("Initialize Workspace") {
 			@Override
 			public IStatus runInWorkspace(IProgressMonitor monitor) {
 				long start = System.currentTimeMillis();
 				SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
 				try {
-					JavaLanguageServerPlugin.logInfo("Start initialize for" + rootsName);
+					JavaLanguageServerPlugin.logInfo("Start initialization");
 					projectsManager.setAutoBuilding(false);
 					projectsManager.initializeProjects(roots, subMonitor);
 					projectsManager.setAutoBuilding(preferenceManager.getPreferences().isAutobuildEnabled());
@@ -265,7 +258,11 @@ final public class ExtendedInitHandler {
 			 */
 			@Override
 			public boolean belongsTo(Object family) {
-				return JAVA_LS_INITIALIZATION_JOBS.equals(family);
+				boolean belongsToAnyRoot = false;
+				for (IPath root: roots) {
+					belongsToAnyRoot |= root.equals(family);
+				}
+				return JAVA_LS_INITIALIZATION_JOBS.equals(family) || belongsToAnyRoot;
 			}
 
 		};
