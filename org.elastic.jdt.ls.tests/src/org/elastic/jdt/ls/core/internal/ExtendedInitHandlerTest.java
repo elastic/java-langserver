@@ -26,7 +26,7 @@ public class ExtendedInitHandlerTest extends AbstractProjectsManagerBasedTest {
 		Job initJob = initJobs[0];
 		Assert.assertSame(Job.RUNNING, initJob.getState());
 		ExtendedInitHandler.cancelInitJobFromURI(rootURI);
-        	// Wait for cancelling for initialize job
+        	// Wait for cancellation for initialize job
 		TimeUnit.MILLISECONDS.sleep(100);
 		Assert.assertSame(Job.NONE, initJob.getState());
 	}
