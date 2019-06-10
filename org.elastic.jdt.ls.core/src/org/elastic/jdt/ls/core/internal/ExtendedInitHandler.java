@@ -228,9 +228,9 @@ final public class ExtendedInitHandler {
 	
 	public static void cancelInitJobFromURI(String uri) {
 		IPath rootName = ResourceUtils.canonicalFilePathFromURI(uri);
-        Job[] jobs = Job.getJobManager().find(rootName);
+        	Job[] jobs = Job.getJobManager().find(rootName);
 		for (Job job: jobs) {
-            JavaLanguageServerPlugin.logInfo("Cancel init job: " +  job.toString());
+            		JavaLanguageServerPlugin.logInfo("Cancel init job: " +  job.toString());
 			job.cancel();
 		}
 	}
