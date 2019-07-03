@@ -20,6 +20,7 @@ export default function (kibana) {
     },
     init(server) {
       const jdtConfigPath = path.resolve(server.config().get('path.data'), 'code/jdt_config');
+      const configFilePath = path.resolve(jdtConfigPath, 'config.ini');
       if (!fs.existsSync(jdtConfigPath)) {
         const codeDataPath = path.dirname(jdtConfigPath);
         if(!fs.existsSync(codeDataPath)) {
@@ -33,7 +34,10 @@ export default function (kibana) {
         } else if (osPlatform == 'linux') {
           configPath = 'config_linux'
         }
-        fs.symlinkSync(path.resolve(__dirname, 'lib/repository', configPath, 'config.ini'), path.resolve(jdtConfigPath, 'config.ini'));
+        if (fs.lstatSync(configFilePath)) {
+          fs.unlinkSync(configFilePath);
+        }
+        fs.symlinkSync(path.resolve(__dirname, 'lib/repository', configPath, 'config.ini'), configFilePath);
       }
       server.expose('install', {
         path: path.join(__dirname, 'lib'),
