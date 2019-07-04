@@ -27,17 +27,15 @@ export default function (kibana) {
           fs.mkdirSync(codeDataPath);
         }
         fs.mkdirSync(jdtConfigPath);
-        let configPath = 'config_mac';
-        const osPlatform = platform();
-        if (osPlatform == 'win32') {
-          configPath = 'config_win';
-        } else if (osPlatform == 'linux') {
-          configPath = 'config_linux'
-        }
         if (fs.lstatSync(configFilePath)) {
           fs.unlinkSync(configFilePath);
         }
-        fs.symlinkSync(path.resolve(__dirname, 'lib/repository', configPath, 'config.ini'), configFilePath);
+        const osPlatform = platform();
+        if (osPlatform == 'darwin') {
+          fs.symlinkSync(path.resolve(__dirname, 'lib/repository/config_mac/config.ini'), configFilePath);
+        } else if (osPlatform == 'linux') {
+          fs.symlinkSync(path.resolve(__dirname, 'lib/repository/config_linux/config.ini'), configFilePath);
+        }
       }
       server.expose('install', {
         path: path.join(__dirname, 'lib'),
