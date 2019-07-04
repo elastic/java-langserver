@@ -1,6 +1,6 @@
 {
   "name": "java-langserver",
-  "version": "7.3.0",
+  "version": "7.3.0-SNAPSHOT",
   "description": "Code Plugin Java Language Server",
   "main": "index.js",
   "kibana": {
