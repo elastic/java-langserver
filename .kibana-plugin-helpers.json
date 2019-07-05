@@ -1,0 +1,10 @@
+{
+    "buildSourcePatterns": [
+        "LICENSE",
+        "package.json",
+        "yarn.lock",
+        "tsconfig.json",
+        "index.js",
+        "{lib,public,server,webpackShims,translations}/**/*"
+      ]
+}
