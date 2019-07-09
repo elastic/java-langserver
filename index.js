@@ -19,23 +19,24 @@ export default function (kibana) {
       }).default();
     },
     init(server) {
-      const jdtConfigPath = path.resolve(server.config().get('path.data'), 'code/jdt_config');
+      const codeDataPath = path.resolve(server.config().get('path.data'), 'code');
+      const jdtConfigPath = path.resolve(codeDataPath, 'jdt_config');
       const configFilePath = path.resolve(jdtConfigPath, 'config.ini');
+      if(!fs.existsSync(codeDataPath)) {
+        fs.mkdirSync(codeDataPath);
+      }
       if (!fs.existsSync(jdtConfigPath)) {
-        const codeDataPath = path.dirname(jdtConfigPath);
-        if(!fs.existsSync(codeDataPath)) {
-          fs.mkdirSync(codeDataPath);
-        }
         fs.mkdirSync(jdtConfigPath);
-        if (fs.lstatSync(configFilePath)) {
-          fs.unlinkSync(configFilePath);
-        }
-        const osPlatform = platform();
-        if (osPlatform == 'darwin') {
-          fs.symlinkSync(path.resolve(__dirname, 'lib/repository/config_mac/config.ini'), configFilePath);
-        } else if (osPlatform == 'linux') {
-          fs.symlinkSync(path.resolve(__dirname, 'lib/repository/config_linux/config.ini'), configFilePath);
-        }
+      }
+      try {
+        fs.lstatSync(configFilePath);
+        fs.unlinkSync(configFilePath);
+      } catch (e) {}
+      const osPlatform = platform();
+      if (osPlatform == 'darwin') {
+        fs.symlinkSync(path.resolve(__dirname, 'lib/repository/config_mac/config.ini'), configFilePath);
+      } else if (osPlatform == 'linux') {
+        fs.symlinkSync(path.resolve(__dirname, 'lib/repository/config_linux/config.ini'), configFilePath);
       }
       server.expose('install', {
         path: path.join(__dirname, 'lib'),
