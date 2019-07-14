@@ -13,7 +13,8 @@ elif [ $# -eq 2 ]; then
     VERSION=$1
     KIBANA_VERSION=$2
     DESTINATION=release/
-    CMD="./mvnw -Dtycho.mode=maven -DnewVersion=$VERSION -D-Pserver-distro org.eclipse.tycho:tycho-versions-plugin:set-version && \
+    CMD="./mvnw clean verify -B -e && \
+         ./mvnw -Dtycho.mode=maven -DnewVersion=$VERSION -D-Pserver-distro org.eclipse.tycho:tycho-versions-plugin:set-version && \
          jq '.version=\"$VERSION\"' package.json > tmp && mv tmp package.json"
 else
     echo "Wrong number of parameters!"
