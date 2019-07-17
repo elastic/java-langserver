@@ -5,7 +5,6 @@ if [ $# -eq 0 ]; then
     echo "deploy snapshot package.."
     KIBANA_VERSION=8.0.0
     DESTINATION=snapshot/
-    CMD="./mvnw clean verify -B -e"
 elif [ $# -eq 2 ]; then
     echo "deploy release package.."
     echo "plugin version: $1"
@@ -13,8 +12,7 @@ elif [ $# -eq 2 ]; then
     VERSION=$1
     KIBANA_VERSION=$2
     DESTINATION=release/
-    CMD="./mvnw clean verify -B -e && \
-         ./mvnw -Dtycho.mode=maven -DnewVersion=$VERSION -D-Pserver-distro org.eclipse.tycho:tycho-versions-plugin:set-version && \
+    CMD="./mvnw -Dtycho.mode=maven -DnewVersion=$VERSION -D-Pserver-distro org.eclipse.tycho:tycho-versions-plugin:set-version && \
          jq '.version=\"$VERSION\"' package.json > tmp && mv tmp package.json"
 else
     echo "Wrong number of parameters!"
@@ -69,7 +67,7 @@ docker run \
                   done
 
                   $CMD
-                  ./mvnw -DskipTests=true clean deploy -DaltDeploymentRepository=dev::default::file:./repository -B -e -Pserver-distro
+                  ./mvnw clean deploy -DaltDeploymentRepository=dev::default::file:./repository -B -e -Pserver-distro
                   /plugin/kibana/node_modules/git-hash-package/index.js
                   jq '.version=\"\\(.version)-linux\"' package.json > package-linux.json
                   jq '.version=\"\\(.version)-darwin\"' package.json > package-darwin.json

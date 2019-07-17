@@ -216,13 +216,6 @@
 	</build>
 	<repositories>
 		<repository>
-			<id>oss.sonatype.org</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-			<repository>
 			<id>jdt.ls</id>
 			<layout>p2</layout>
 			<url>https://download.eclipse.org/jdtls/milestones/0.40.0/repository/</url>
