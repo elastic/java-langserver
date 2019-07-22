@@ -92,9 +92,9 @@ public class FullHandler {
 					String qname = JavaElementLabels.getTextLabel(element, JavaElementLabels.ALL_FULLY_QUALIFIED);
 					String name = JavaElementLabels.getElementLabel(element, JavaElementLabels.ALL_DEFAULT);
 					si.setName(name == null ? element.getElementName() : name);
-					List<Either<String, MarkedString>> res = new LinkedList<>();
-					MarkedString signature = HoverInfoProvider.computeSignature(element);
-					res.add(Either.forRight(signature));
+					// List<Either<String, MarkedString>> res = new LinkedList<>();
+					// MarkedString signature = HoverInfoProvider.computeSignature(element);
+					// res.add(Either.forRight(signature));
 					// MarkedString javadoc = HoverInfoProvider.computeJavadoc(element);
 					// if (javadoc != null && javadoc.getValue() != null) {
 					// 	res.add(Either.forLeft(javadoc.getValue()));
@@ -106,14 +106,14 @@ public class FullHandler {
 					}
 					rawLocation.setUri(ResourceUtils.toClientUri(rawLocation.getUri()));
 					si.setLocation(rawLocation);
-					DetailSymbolInformation detailSymbolInfo = new DetailSymbolInformation(si, QnameHelper.getSimplifiedQname(qname), res);
+					DetailSymbolInformation detailSymbolInfo = new DetailSymbolInformation(si, QnameHelper.getSimplifiedQname(qname));
 					if (!symbols.contains(detailSymbolInfo)) {
 						symbols.add(detailSymbolInfo);
 					}
 				}
 			} catch (Exception e) {
-				// Ignore java.lang.ClassCastException from JDTUtils.computeFieldConstantFromTypeAST
-				// see: https://github.com/elastic/code/issues/1493
+				// Ignore Exception when indexing
+				ElasticJavaLanguageServerPlugin.logException("Problem when do indexing for" +  unit.getElementName(), e);
 			}
 		}
 	}
