@@ -40,7 +40,6 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.ls.core.internal.JavaClientConnection.JavaLanguageClient;
 import org.eclipse.jdt.ls.core.internal.ServiceStatus;
-import org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer;
 import org.eclipse.jdt.ls.core.internal.ConnectionStreamFactory;
 import org.eclipse.jdt.ls.core.internal.IConstants;
 import org.eclipse.jdt.ls.core.internal.JavaClientConnection;
@@ -413,7 +412,7 @@ public class ElasticJavaLanguageServerPlugin extends Plugin {
 		this.protocol = protocol;
 	}
 
-	public JDTLanguageServer getProtocol() {
+	public ElasticJDTLanguageServer getProtocol() {
 		return protocol;
 	}
 
