@@ -11,9 +11,13 @@ import java.util.function.Function;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.manipulation.CoreASTProvider;
 import org.eclipse.jdt.ls.core.internal.CancellableProgressMonitor;
+import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.jdt.ls.core.internal.handlers.InitHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentLifeCycleHandler;
+import org.eclipse.jdt.ls.core.internal.handlers.DocumentSymbolHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer;
 import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
@@ -22,15 +26,19 @@ import org.eclipse.jdt.ls.core.internal.JobHelpers;
 import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.elastic.jdt.ls.core.internal.EDefinitionHandler;
 import org.eclipse.lsp4j.DidChangeWorkspaceFoldersParams;
+import org.eclipse.lsp4j.DocumentSymbol;
+import org.eclipse.lsp4j.DocumentSymbolParams;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.InitializedParams;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.ReferenceParams;
+import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.CompletableFutures;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 
 import org.elastic.jdt.ls.core.internal.ElasticJavaLanguageServerPlugin;
@@ -77,11 +85,18 @@ public class ElasticJDTLanguageServer extends JDTLanguageServer {
 			JavaLanguageServerPlugin.logException(e.getMessage(), e);
 		}
 	}
-
+	
+	@Override
+	public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
+		setActiveElementInASTProvider(JDTUtils.resolveCompilationUnit(params.getTextDocument().getUri()));
+		return super.documentSymbol(params);
+	}
+	
 	@Override
 	public CompletableFuture<Hover> hover(TextDocumentPositionParams position) {
 		logInfo(">> document/hover");
 		ExtendedHoverHandler handler = new ExtendedHoverHandler(this.preferenceManager);
+		setActiveElementInASTProvider(JDTUtils.resolveCompilationUnit(position.getTextDocument().getUri()));
 		return computeAsync((monitor) -> handler.extendedHover(position, monitor));
 	}
 	
@@ -89,6 +104,7 @@ public class ElasticJDTLanguageServer extends JDTLanguageServer {
 	public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
 		logInfo(">> document/references");
 		ExtendedReferencesHandler handler = new ExtendedReferencesHandler(this.preferenceManager);
+		setActiveElementInASTProvider(JDTUtils.resolveCompilationUnit(params.getTextDocument().getUri()));
 		return computeAsync((monitor) -> handler.findReferences(params, monitor));
 	}
 	
@@ -97,6 +113,7 @@ public class ElasticJDTLanguageServer extends JDTLanguageServer {
 		logInfo(">> document/full");
 		FullHandler handler;
 		handler = new FullHandler(this.preferenceManager);
+		setActiveElementInASTProvider(JDTUtils.resolveCompilationUnit(fullParams.getTextDocumentIdentifier().getUri()));
 		return computeAsync((monitor) -> handler.full(fullParams, monitor));
 	}
 
@@ -104,6 +121,7 @@ public class ElasticJDTLanguageServer extends JDTLanguageServer {
 	public CompletableFuture<SymbolLocator> eDefinition(TextDocumentPositionParams position) {
 		logInfo(">> document/edefinition");
 		EDefinitionHandler handler = new EDefinitionHandler(this.preferenceManager);
+		setActiveElementInASTProvider(JDTUtils.resolveCompilationUnit(position.getTextDocument().getUri()));
 		return computeAsync((monitor) -> handler.eDefinition(position, monitor));
 	}
 
@@ -122,6 +140,12 @@ public class ElasticJDTLanguageServer extends JDTLanguageServer {
 	}
 	private IProgressMonitor toMonitor(CancelChecker checker) {
 		return new CancellableProgressMonitor(checker);
+	}
+	
+	private void setActiveElementInASTProvider(ICompilationUnit unit) {
+		if (unit != null) {
+			CoreASTProvider.getInstance().setActiveJavaElement(unit);
+		}
 	}
 
 	private void waitForLifecycleJobs(IProgressMonitor monitor) {
