@@ -19,10 +19,18 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="3.15.0",
  com.google.guava;bundle-version="15.0.0",
  org.eclipse.ant.core;bundle-version="3.5.200",
  org.apache.ant;bundle-version="1.10.5",
- javax.annotation;bundle-version="1.2.0"
-Export-Package: org.elastic.jdt.ls.core.internal;x-friends:="org.elastic.jdt.ls.tests"
+ javax.annotation;bundle-version="1.2.0",
+ com.google.gson;bundle-version="2.7.0",
+ org.eclipse.jdt.launching;bundle-version="3.12.0",
+ org.eclipse.m2e.maven.runtime;bundle-version="1.11.0",
+ org.apache.httpcomponents.httpcore;bundle-version="4.4.9",
+ org.apache.httpcomponents.httpclient;bundle-version="4.5.5",
+ org.slf4j.api;bundle-version="1.7.2"
+Export-Package: org.elastic.jdt.ls.core.internal;x-friends:="org.elastic.jdt.ls.tests",
+ org.elastic.jdt.ls.core.internal.manifest;x-friends:="org.elastic.jdt.ls.tests"
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.elastic.jdt.ls.core.internal.ElasticJavaLanguageServerPlugin
-Import-Package: org.eclipse.ant.internal.ui,
+Import-Package: org.apache.commons.io;version="2.2.0",
+ org.eclipse.ant.internal.ui,
  org.eclipse.ant.internal.ui.datatransfer,
  org.eclipse.ant.internal.ui.model

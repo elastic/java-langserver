@@ -1,0 +1,52 @@
+{
+  "projectInfos": [
+    {
+      "android": false,
+      "path": ":",
+      "name": "android",
+      "repos": [
+        {
+          "repoType": "MAVEN",
+          "url": "https://jcenter.bintray.com/"
+        },
+        {
+          "repoType": "MAVEN",
+          "url": "https://dl.google.com/dl/android/maven2/"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "android": true,
+      "androidSdkVersion": "android-25",
+      "path": ":app",
+      "name": "app",
+      "repos": [
+        {
+          "repoType": "MAVEN",
+          "url": "https://jcenter.bintray.com/"
+        },
+        {
+          "repoType": "MAVEN",
+          "url": "https://dl.google.com/dl/android/maven2/"
+        }
+      ],
+      "dependencies": [
+        {
+          "groupId": "com.android.tools.build",
+          "artifactId": "aapt2",
+          "version": "3.2.0-4818971"
+        }
+      ],
+      "srcDirs": [
+        "src/main/java",
+        "build/generated/source/r/debug",
+        "build/generated/source/buildConfig/debug",
+        "build/generated/source/aidl/debug"
+      ],
+      "testSrcDirs": [
+        "src/test/java"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+plugins {
+    id 'gradle-manifest-plugin'
+}
+
+apply plugin: 'java'
+apply plugin: 'maven'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.apache.commons:commons-lang3:3.5'
+}
