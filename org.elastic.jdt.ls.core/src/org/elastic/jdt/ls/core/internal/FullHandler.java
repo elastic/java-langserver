@@ -75,40 +75,45 @@ public class FullHandler {
 
 	private void collectSymbols(ITypeRoot unit, IJavaElement[] elements, ArrayList<DetailSymbolInformation> symbols, IProgressMonitor monitor) throws JavaModelException {
 		for (IJavaElement element : elements) {
-			if (monitor.isCanceled()) {
-				return;
-			}
-			if (element instanceof IParent) {
-				collectSymbols(unit, filter(((IParent) element).getChildren()), symbols, monitor);
-			}
-			Location rawLocation = JDTUtils.toLocation(element);
-			int type = element.getElementType();
-			if (type != IJavaElement.TYPE && type != IJavaElement.FIELD && type != IJavaElement.METHOD) {
-				continue;
-			}
-			if (rawLocation != null) {
-				SymbolInformation si = new SymbolInformation();
-				String qname = JavaElementLabels.getTextLabel(element, JavaElementLabels.ALL_FULLY_QUALIFIED);
-				String name = JavaElementLabels.getElementLabel(element, JavaElementLabels.ALL_DEFAULT);
-				si.setName(name == null ? element.getElementName() : name);
-				List<Either<String, MarkedString>> res = new LinkedList<>();
-				MarkedString signature = HoverInfoProvider.computeSignature(element);
-				res.add(Either.forRight(signature));
-				// MarkedString javadoc = HoverInfoProvider.computeJavadoc(element);
-				// if (javadoc != null && javadoc.getValue() != null) {
-				// 	res.add(Either.forLeft(javadoc.getValue()));
-				// }
-				si.setName(name == null ? element.getElementName() : name);
-				si.setKind(DocumentSymbolHandler.mapKind(element));
-				if (element.getParent() != null) {
-					si.setContainerName(element.getParent().getElementName());
+			try {
+				if (monitor.isCanceled()) {
+					return;
 				}
-				rawLocation.setUri(ResourceUtils.toClientUri(rawLocation.getUri()));
-				si.setLocation(rawLocation);
-				DetailSymbolInformation detailSymbolInfo = new DetailSymbolInformation(si, QnameHelper.getSimplifiedQname(qname), res);
-				if (!symbols.contains(detailSymbolInfo)) {
-					symbols.add(detailSymbolInfo);
+				if (element instanceof IParent) {
+					collectSymbols(unit, filter(((IParent) element).getChildren()), symbols, monitor);
 				}
+				Location rawLocation = JDTUtils.toLocation(element);
+				int type = element.getElementType();
+				if (type != IJavaElement.TYPE && type != IJavaElement.FIELD && type != IJavaElement.METHOD) {
+					continue;
+				}
+				if (rawLocation != null) {
+					SymbolInformation si = new SymbolInformation();
+					String qname = JavaElementLabels.getTextLabel(element, JavaElementLabels.ALL_FULLY_QUALIFIED);
+					String name = JavaElementLabels.getElementLabel(element, JavaElementLabels.ALL_DEFAULT);
+					si.setName(name == null ? element.getElementName() : name);
+					// List<Either<String, MarkedString>> res = new LinkedList<>();
+					// MarkedString signature = HoverInfoProvider.computeSignature(element);
+					// res.add(Either.forRight(signature));
+					// MarkedString javadoc = HoverInfoProvider.computeJavadoc(element);
+					// if (javadoc != null && javadoc.getValue() != null) {
+					// 	res.add(Either.forLeft(javadoc.getValue()));
+					// }
+					si.setName(name == null ? element.getElementName() : name);
+					si.setKind(DocumentSymbolHandler.mapKind(element));
+					if (element.getParent() != null) {
+						si.setContainerName(element.getParent().getElementName());
+					}
+					rawLocation.setUri(ResourceUtils.toClientUri(rawLocation.getUri()));
+					si.setLocation(rawLocation);
+					DetailSymbolInformation detailSymbolInfo = new DetailSymbolInformation(si, QnameHelper.getSimplifiedQname(qname));
+					if (!symbols.contains(detailSymbolInfo)) {
+						symbols.add(detailSymbolInfo);
+					}
+				}
+			} catch (Exception e) {
+				// Ignore Exception when indexing
+				ElasticJavaLanguageServerPlugin.logException("Problem when do indexing for" +  unit.getElementName(), e);
 			}
 		}
 	}

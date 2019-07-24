@@ -59,7 +59,6 @@ public class FullHandlerTest extends AbstractProjectsManagerBasedTest {
 		assertNotNull(full);
 		assertNotSame(0, full.getSymbols().size());
 		for (DetailSymbolInformation s : full.getSymbols()) {
-			assertNotNull(s.getContents());
 			assertNotNull(s.getQname());
 		}
 		assertSame(0, full.getReferences().size());
@@ -78,7 +77,6 @@ public class FullHandlerTest extends AbstractProjectsManagerBasedTest {
 		assertNotNull(full);
 		assertNotSame(0, full.getSymbols().size());
 		for (DetailSymbolInformation s : full.getSymbols()) {
-			assertNotNull(s.getContents());
 			assertNotNull(s.getQname());
 		}
 		assertNotSame(0, full.getReferences().size());
