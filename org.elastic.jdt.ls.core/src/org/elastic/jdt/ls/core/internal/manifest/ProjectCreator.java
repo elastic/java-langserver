@@ -32,7 +32,7 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.launching.JavaRuntime;
-
+import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 import org.elastic.jdt.ls.core.internal.ElasticJavaLanguageServerPlugin;
 import org.elastic.jdt.ls.core.internal.manifest.model.Dependency;
 import org.elastic.jdt.ls.core.internal.manifest.model.ProjectInfo;
@@ -262,18 +262,25 @@ public class ProjectCreator {
 		for (int i = 0; i < sourceDirs.size(); i++) {
 			String srcDir = sourceDirs.get(i);
 			if (currentDir.resolve(srcDir).toFile().exists()) {
-				addSourceContainer(javaProject, srcDir, srcDir, "bin", "bin", monitor);
+				File srcDirectory = new File(srcDir);
+				String srcDirectoryName = srcDirectory.getName();
+				IPath sourcePath = javaProject.getProject().getFolder(srcDir).getFullPath();
+				ProjectUtils.addSourcePath(sourcePath, new IPath[0], javaProject);
 			}
 		}
 	}
 
 	private IJavaProject createJavaProject(String projectName, IProgressMonitor monitor) throws CoreException {
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 
 		IProject project = root.getProject(projectName);
-
+		IProjectDescription description = workspace.newProjectDescription(project.getName());
+		
+		description.setLocationURI(currentDir.toUri());
+		
 		if (!project.exists()) {
-			project.create(monitor);
+			project.create(description, monitor);
 		} else {
 			project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 		}
@@ -301,37 +308,6 @@ public class ProjectCreator {
 		newNatures[prevNatures.length] = natureId;
 		description.setNatureIds(newNatures);
 		proj.setDescription(description, monitor);
-	}
-
-	/**
-	 * Adds a source container to a IJavaProject.
-	 */
-	private void addSourceContainer(IJavaProject jproject, String srcName, String srcPath, String outputName, String outputPath, IProgressMonitor monitor) throws CoreException {
-		IProject project = jproject.getProject();
-		IContainer container = null;
-		if (srcName == null || srcName.length() == 0) {
-			container = project;
-		} else {
-			IFolder folder = project.getFolder(srcName);
-			if (!folder.exists()) {
-				folder.createLink(new Path(srcPath), IResource.ALLOW_MISSING_LOCAL, monitor);
-			}
-			container = folder;
-		}
-		IPackageFragmentRoot root = jproject.getPackageFragmentRoot(container);
-
-		IPath output = null;
-		if (outputName != null) {
-			IFolder outputFolder = project.getFolder(outputName);
-			if (!outputFolder.exists()) {
-				outputFolder.createLink(new Path(outputPath), IResource.ALLOW_MISSING_LOCAL, monitor);
-			}
-			output = outputFolder.getFullPath();
-		}
-
-		IClasspathEntry cpe = JavaCore.newSourceEntry(root.getPath(), new IPath[0], output);
-
-		addToClasspath(jproject, cpe, monitor);
 	}
 
 	private void addToClasspath(IJavaProject jproject, IClasspathEntry cpe, IProgressMonitor monitor) throws JavaModelException {
