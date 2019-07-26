@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -101,7 +102,6 @@ public class ProjectCreator {
 		if (dependencies.size() == 0) {
 			return;
 		}
-		ElasticJavaLanguageServerPlugin.logInfo(dependencies.toString());
 		for (int i = 0; i < dependencies.size(); i++) {
 			try {
 				String cp = dependencies.get(i).getLeft();
@@ -160,17 +160,26 @@ public class ProjectCreator {
             	} else {
             		try {
 						Artifact artifact = new DefaultArtifact(String.format("%s:%s:%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion()));
-    	    			artifactRequest.setArtifact(artifact);
-    	    			ArtifactResult artifactResult = system.resolveArtifact(session, artifactRequest);
-    	    			artifactFile = artifactResult.getArtifact().getFile();
+    	        		String artifactPath = session.getLocalRepositoryManager().getPathForLocalArtifact(artifact);
+    	        		artifactFile = Paths.get(ArtifactResolver.MAVEN_LOCAL, artifactPath).toFile();
+    	        		if (!artifactFile.exists()) {
+    	        			artifactRequest.setArtifact(artifact);
+        	    			ArtifactResult artifactResult = system.resolveArtifact(session, artifactRequest);
+        	    			artifactFile = artifactResult.getArtifact().getFile();
+    	        		}
     	    			if (FilenameUtils.getExtension(artifactFile.getName()) == "aar") {
     	            		// extract all *.aar to jar
     	            		explodeAarJarFiles(artifactFile, String.format("%s-%s-%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion())).forEach(allDepsPaths::add);
     	            	} else {
     	            		Artifact sourceArtifact = new DefaultArtifact(String.format("%s:%s:jar:sources:%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion()));
-    	            		artifactRequest.setArtifact(sourceArtifact);
-    	            		ArtifactResult sourceArtifactResult = system.resolveArtifact(session, artifactRequest);
-    	            		allDepsPaths.add(ImmutablePair.of(artifactFile.getPath(), sourceArtifactResult.getArtifact().getFile().getPath()));
+    	            		String sourceArtifactPath = session.getLocalRepositoryManager().getPathForLocalArtifact(sourceArtifact);
+    	            		File sourceArtifactFile = Paths.get(ArtifactResolver.MAVEN_LOCAL, sourceArtifactPath).toFile();
+    	            		if (!sourceArtifactFile.exists()) {
+    	            			artifactRequest.setArtifact(sourceArtifact);
+        	            		ArtifactResult sourceArtifactResult = system.resolveArtifact(session, artifactRequest);
+        	            		sourceArtifactFile = sourceArtifactResult.getArtifact().getFile();
+    	            		}
+    	            		allDepsPaths.add(ImmutablePair.of(artifactFile.getPath(), sourceArtifactFile.getPath()));
     	            	}
             		} catch (ArtifactResolutionException e) {
             			if (artifactFile != null) {

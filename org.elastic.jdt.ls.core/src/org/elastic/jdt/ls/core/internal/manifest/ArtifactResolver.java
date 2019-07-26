@@ -1,5 +1,6 @@
 package org.elastic.jdt.ls.core.internal.manifest;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,6 +24,8 @@ import org.elastic.jdt.ls.core.internal.manifest.model.Repo;
 
 
 public class ArtifactResolver {
+
+    public final static String MAVEN_LOCAL = Paths.get(System.getProperty("user.home"), ".m2").toString();
 	
 	public static RepositorySystem newRepositorySystem() {
         DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
@@ -45,7 +48,7 @@ public class ArtifactResolver {
 	public static DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system) {
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
 
-        LocalRepository localRepo = new LocalRepository("target/local-repo");
+        LocalRepository localRepo = new LocalRepository(MAVEN_LOCAL);
         session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
 
 //        session.setTransferListener(new ConsoleTransferListener());
