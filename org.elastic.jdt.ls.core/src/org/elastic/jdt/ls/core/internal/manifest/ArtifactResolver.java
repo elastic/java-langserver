@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -25,7 +26,8 @@ import org.elastic.jdt.ls.core.internal.manifest.model.Repo;
 
 public class ArtifactResolver {
 
-    public final static String MAVEN_LOCAL = Paths.get(System.getProperty("user.home"), ".m2").toString();
+    public final static String MAVEN_LOCAL = System.getProperty("JAVA_LANGSERVER_CACHE") != null ? Paths.get(System.getProperty("JAVA_LANGSERVER_CACHE"), ".m2").toString() :
+		Paths.get(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString(), ".m2").toString();
 	
 	public static RepositorySystem newRepositorySystem() {
         DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
