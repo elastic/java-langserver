@@ -1,10 +1,12 @@
 package org.elastic.jdt.ls.core.internal.manifest;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -23,6 +25,9 @@ import org.elastic.jdt.ls.core.internal.manifest.model.Repo;
 
 
 public class ArtifactResolver {
+
+    public final static String MAVEN_LOCAL = System.getProperty("JAVA_LANGSERVER_CACHE") != null ? Paths.get(System.getProperty("JAVA_LANGSERVER_CACHE"), ".manifest").toString() :
+		Paths.get(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString(), ".manifest").toString();
 	
 	public static RepositorySystem newRepositorySystem() {
         DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
@@ -45,7 +50,7 @@ public class ArtifactResolver {
 	public static DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system) {
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
 
-        LocalRepository localRepo = new LocalRepository("target/local-repo");
+        LocalRepository localRepo = new LocalRepository(MAVEN_LOCAL);
         session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
 
 //        session.setTransferListener(new ConsoleTransferListener());
