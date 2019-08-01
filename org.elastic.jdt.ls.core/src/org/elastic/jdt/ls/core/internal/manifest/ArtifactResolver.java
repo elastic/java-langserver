@@ -26,8 +26,8 @@ import org.elastic.jdt.ls.core.internal.manifest.model.Repo;
 
 public class ArtifactResolver {
 
-    public final static String MAVEN_LOCAL = System.getProperty("JAVA_LANGSERVER_CACHE") != null ? Paths.get(System.getProperty("JAVA_LANGSERVER_CACHE"), ".m2").toString() :
-		Paths.get(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString(), ".m2").toString();
+    public final static String MAVEN_LOCAL = System.getProperty("JAVA_LANGSERVER_CACHE") != null ? Paths.get(System.getProperty("JAVA_LANGSERVER_CACHE"), ".manifest").toString() :
+		Paths.get(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString(), ".manifest").toString();
 	
 	public static RepositorySystem newRepositorySystem() {
         DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
