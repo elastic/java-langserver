@@ -136,14 +136,14 @@ public class ProjectCreator {
 	
 	private List<ImmutablePair<String, String>> retrieveAllDeps(List<Dependency> deps, List<Repo> repos) throws InterruptedException {
 		List<ImmutablePair<String, String>> allDepsPaths = Collections.synchronizedList(new ArrayList<>());
-        
-        class DownloadDepTask implements Runnable {
+		
+		class DownloadDepTask implements Runnable {
 			private Dependency dep;
 			private RepositorySystem system;
 			private RepositorySystemSession session;
 			private ArtifactRequest artifactRequest;
-
-    		DownloadDepTask(Dependency dep) {
+		
+			DownloadDepTask(Dependency dep) {
 				this.dep = dep;
 				this.system = ArtifactResolver.newRepositorySystem();
 				this.session = ArtifactResolver.newRepositorySystemSession(system);
@@ -151,59 +151,61 @@ public class ProjectCreator {
 				this.artifactRequest = new ArtifactRequest();
 				this.artifactRequest.setRepositories(ArtifactResolver.newRepositories(system, session, repos));
 			}
-    		@Override
-    		public void run() {
-    			File artifactFile = null;
-            	if (dep.getPath() != null) {
-            		// local libs
-            		allDepsPaths.add(ImmutablePair.of(dep.getPath(), null));
-            	} else {
-            		try {
+			
+			@Override
+		    	public void run() {
+    				File artifactFile = null;
+            			if (dep.getPath() != null) {
+					// local libs
+					allDepsPaths.add(ImmutablePair.of(dep.getPath(), null));
+				} else {
+					try {
 						Artifact artifact = new DefaultArtifact(String.format("%s:%s:%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion()));
-    	        		String artifactPath = session.getLocalRepositoryManager().getPathForLocalArtifact(artifact);
-    	        		artifactFile = Paths.get(ArtifactResolver.MAVEN_LOCAL, artifactPath).toFile();
-    	        		if (!artifactFile.exists()) {
-    	        			artifactRequest.setArtifact(artifact);
-        	    			ArtifactResult artifactResult = system.resolveArtifact(session, artifactRequest);
-        	    			artifactFile = artifactResult.getArtifact().getFile();
-    	        		}
-    	    			if (FilenameUtils.getExtension(artifactFile.getName()) == "aar") {
-    	            		// extract all *.aar to jar
-    	            		explodeAarJarFiles(artifactFile, String.format("%s-%s-%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion())).forEach(allDepsPaths::add);
-    	            	} else {
-    	            		Artifact sourceArtifact = new DefaultArtifact(String.format("%s:%s:jar:sources:%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion()));
-    	            		String sourceArtifactPath = session.getLocalRepositoryManager().getPathForLocalArtifact(sourceArtifact);
-    	            		File sourceArtifactFile = Paths.get(ArtifactResolver.MAVEN_LOCAL, sourceArtifactPath).toFile();
-    	            		if (!sourceArtifactFile.exists()) {
-    	            			artifactRequest.setArtifact(sourceArtifact);
-        	            		ArtifactResult sourceArtifactResult = system.resolveArtifact(session, artifactRequest);
-        	            		sourceArtifactFile = sourceArtifactResult.getArtifact().getFile();
-    	            		}
-    	            		allDepsPaths.add(ImmutablePair.of(artifactFile.getPath(), sourceArtifactFile.getPath()));
-    	            	}
-            		} catch (ArtifactResolutionException e) {
-            			if (artifactFile != null) {
-            				if (FilenameUtils.getExtension(artifactFile.getName()) == "aar") {
-        	            		// extract all *.aar to jar
-        	            		explodeAarJarFiles(artifactFile, String.format("%s-%s-%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion())).forEach(allDepsPaths::add);
-        	            	} else {
-        	            		allDepsPaths.add(ImmutablePair.of(artifactFile.getPath(), null));
-        	            	}
-            			}
-            		}
-            	}
-    		
-    		}
-        }
+						String artifactPath = session.getLocalRepositoryManager().getPathForLocalArtifact(artifact);
+						artifactFile = Paths.get(ArtifactResolver.MAVEN_LOCAL, artifactPath).toFile();
+						if (!artifactFile.exists()) {
+							artifactRequest.setArtifact(artifact);
+							ArtifactResult artifactResult = system.resolveArtifact(session, artifactRequest);
+							artifactFile = artifactResult.getArtifact().getFile();
+						}
+						if (FilenameUtils.getExtension(artifactFile.getName()) == "aar") {
+						// extract all *.aar to jar
+						explodeAarJarFiles(artifactFile, String.format("%s-%s-%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion())).forEach(allDepsPaths::add);
+					} else {
+						Artifact sourceArtifact = new DefaultArtifact(String.format("%s:%s:jar:sources:%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion()));
+						String sourceArtifactPath = session.getLocalRepositoryManager().getPathForLocalArtifact(sourceArtifact);
+						File sourceArtifactFile = Paths.get(ArtifactResolver.MAVEN_LOCAL, sourceArtifactPath).toFile();
+						if (!sourceArtifactFile.exists()) {
+							artifactRequest.setArtifact(sourceArtifact);
+							ArtifactResult sourceArtifactResult = system.resolveArtifact(session, artifactRequest);
+							sourceArtifactFile = sourceArtifactResult.getArtifact().getFile();
+						}
+						allDepsPaths.add(ImmutablePair.of(artifactFile.getPath(), sourceArtifactFile.getPath()));
+					}
+					} catch (ArtifactResolutionException e) {
+						if (artifactFile != null) {
+							if (FilenameUtils.getExtension(artifactFile.getName()) == "aar") {
+								// extract all *.aar to jar
+								explodeAarJarFiles(artifactFile, String.format("%s-%s-%s", dep.getGroupId(), dep.getArtifactId(), dep.getVersion())).forEach(allDepsPaths::add);
+								} else {
+									allDepsPaths.add(ImmutablePair.of(artifactFile.getPath(), null));
+								}
+							} else {
+								ElasticJavaLanguageServerPlugin.logException("Failed to resolve dependency: " + dep.toString(), e);
+							}
+						}
+					}
+				}
+        		}
         
-        ExecutorService pool = Executors.newFixedThreadPool(10);
-        for (Dependency dependency: deps) {
-        	pool.submit(new DownloadDepTask(dependency));
-        }
-        pool.shutdown();
-        pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-     
-        return allDepsPaths;
+		ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
+		for (Dependency dependency: deps) {
+			pool.submit(new DownloadDepTask(dependency));
+		}
+		pool.shutdown();
+		pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+	
+		return allDepsPaths;
 	}
 	
 	
