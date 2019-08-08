@@ -9,6 +9,7 @@ import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.ConfigurationProperties;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -51,6 +52,10 @@ public class ArtifactResolver {
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
 
         LocalRepository localRepo = new LocalRepository(MAVEN_LOCAL);
+        // set request timeout to 10 min
+        session.setConfigProperty(ConfigurationProperties.REQUEST_TIMEOUT, 10 * 60 * 1000);
+        // set connect timeout to 1 min
+        session.setConfigProperty(ConfigurationProperties.CONNECT_TIMEOUT, 60 * 1000);
         session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
 
 //        session.setTransferListener(new ConsoleTransferListener());
