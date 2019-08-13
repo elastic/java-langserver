@@ -1,26 +1,35 @@
 package org.elastic.jdt.ls.core.internal;
 
 import static org.elastic.jdt.ls.core.internal.ElasticJavaLanguageServerPlugin.logInfo;
+import static org.elastic.jdt.ls.core.internal.ElasticJavaLanguageServerPlugin.logException;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.reflect.MethodUtils;
+
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.manipulation.CoreASTProvider;
 import org.eclipse.jdt.ls.core.internal.CancellableProgressMonitor;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.jdt.ls.core.internal.handlers.InitHandler;
+import org.eclipse.jdt.ls.core.internal.handlers.CompletionHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentLifeCycleHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentSymbolHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer;
 import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
+import org.eclipse.jdt.ls.core.internal.preferences.Preferences;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.JobHelpers;
 import org.eclipse.jdt.ls.core.internal.ResourceUtils;
@@ -70,6 +79,66 @@ public class ElasticJDTLanguageServer extends JDTLanguageServer {
 			JavaLanguageServerPlugin.logException(e.getMessage(), e);
 		}
 		return result;
+	}
+
+	@Override
+	public void initialized(InitializedParams params) {
+		logInfo(">> initialized");
+		if (preferenceManager.getClientPreferences().isCompletionDynamicRegistered()) {
+			registerCapability(Preferences.COMPLETION_ID, Preferences.COMPLETION, CompletionHandler.DEFAULT_COMPLETION_OPTIONS);
+		}
+		if (preferenceManager.getClientPreferences().isWorkspaceSymbolDynamicRegistered()) {
+			registerCapability(Preferences.WORKSPACE_SYMBOL_ID, Preferences.WORKSPACE_SYMBOL);
+		}
+		if (preferenceManager.getClientPreferences().isDocumentSymbolDynamicRegistered()) {
+			registerCapability(Preferences.DOCUMENT_SYMBOL_ID, Preferences.DOCUMENT_SYMBOL);
+		}
+		if (preferenceManager.getClientPreferences().isDefinitionDynamicRegistered()) {
+			registerCapability(Preferences.DEFINITION_ID, Preferences.DEFINITION);
+		}
+		if (preferenceManager.getClientPreferences().isTypeDefinitionDynamicRegistered()) {
+			registerCapability(Preferences.TYPEDEFINITION_ID, Preferences.TYPEDEFINITION);
+		}
+		if (preferenceManager.getClientPreferences().isHoverDynamicRegistered()) {
+			registerCapability(Preferences.HOVER_ID, Preferences.HOVER);
+		}
+		if (preferenceManager.getClientPreferences().isReferencesDynamicRegistered()) {
+			registerCapability(Preferences.REFERENCES_ID, Preferences.REFERENCES);
+		}
+		if (preferenceManager.getClientPreferences().isDocumentHighlightDynamicRegistered()) {
+			registerCapability(Preferences.DOCUMENT_HIGHLIGHT_ID, Preferences.DOCUMENT_HIGHLIGHT);
+		}
+		if (preferenceManager.getClientPreferences().isFoldgingRangeDynamicRegistered()) {
+			registerCapability(Preferences.FOLDINGRANGE_ID, Preferences.FOLDINGRANGE);
+		}
+		if (preferenceManager.getClientPreferences().isWorkspaceFoldersSupported()) {
+			registerCapability(Preferences.WORKSPACE_CHANGE_FOLDERS_ID, Preferences.WORKSPACE_CHANGE_FOLDERS);
+		}
+		if (preferenceManager.getClientPreferences().isImplementationDynamicRegistered()) {
+			registerCapability(Preferences.IMPLEMENTATION_ID, Preferences.IMPLEMENTATION);
+		}
+		try {
+			MethodUtils.invokeMethod((Object)JavaLanguageServerPlugin.getInstance().getProtocol(), "syncCapabilitiesToSettings");
+		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+			logException(e.getMessage(), e);
+		}
+		Job initializeWorkspace = new Job("Initialize workspace") {
+
+			@Override
+			public IStatus run(IProgressMonitor monitor) {
+				try {
+					JobHelpers.waitForBuildJobs(60 * 60 * 1000); // 1 hour
+					logInfo(">> build jobs finished");
+				} catch (OperationCanceledException e) {
+					logException(e.getMessage(), e);
+					return Status.CANCEL_STATUS;
+				}
+				return Status.OK_STATUS;
+			}
+		};
+		initializeWorkspace.setPriority(Job.BUILD);
+		initializeWorkspace.setSystem(true);
+		initializeWorkspace.schedule();
 	}
 
 	@Override
