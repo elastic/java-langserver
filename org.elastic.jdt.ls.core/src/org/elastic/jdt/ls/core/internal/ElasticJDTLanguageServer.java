@@ -129,6 +129,7 @@ public class ElasticJDTLanguageServer extends JDTLanguageServer {
 				try {
 					JobHelpers.waitForBuildJobs(60 * 60 * 1000); // 1 hour
 					logInfo(">> build jobs finished");
+					// Dont initialize DiagnosticsHandler here
 				} catch (OperationCanceledException e) {
 					logException(e.getMessage(), e);
 					return Status.CANCEL_STATUS;
