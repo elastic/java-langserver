@@ -3,7 +3,7 @@ set -e
 
 if [ $# -eq 0 ]; then
     echo "deploy snapshot package.."
-    KIBANA_VERSION=7.3.1
+    KIBANA_VERSION=7.3.2
     DESTINATION=snapshot/
     CMD="./mvnw clean verify -B -e"
 elif [ $# -eq 2 ]; then
