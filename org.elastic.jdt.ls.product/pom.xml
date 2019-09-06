@@ -110,6 +110,21 @@
 							</resources>
 						</configuration>
 					</execution>
+					<execution>
+						<id>copy-settings</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/settings</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/settings</directory>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>
