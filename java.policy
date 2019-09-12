@@ -1,0 +1,40 @@
+grant codeBase "file:${java.ext.dirs}/*" {
+        permission java.security.AllPermission;
+};
+
+grant {
+        permission java.security.AllPermission;
+        // Gets access to the current user directory
+        permission java.lang.RuntimePermission "*";
+        permission java.lang.RuntimePermission "accessDeclaredMembers";
+        permission java.lang.RuntimePermission "createSecurityManager";
+        permission java.lang.RuntimePermission "setFactory";
+        permission java.lang.RuntimePermission "exitVM.13";
+
+        permission java.util.logging.LoggingPermission "control";
+
+        permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+
+        permission org.osgi.framework.ServicePermission "*", "register, get";
+        permission org.osgi.framework.AdaptPermission "*", "adapt";
+        permission org.osgi.framework.AdminPermission "*","*";
+        permission org.osgi.framework.BundlePermission "*", "fragment, host, provide, require";
+
+        permission java.net.NetPermission "specifyStreamHandler";
+        permission org.eclipse.equinox.log.LogPermission "*", "log";
+        permission org.osgi.service.application.ApplicationAdminPermission "*", "lifecycle";
+
+        permission java.io.FilePermission "<<ALL FILES>>", "read, write, execute, delete";
+        permission java.io.SerializablePermission "enableSubstitution";
+        permission java.util.PropertyPermission "*", "read,write";
+
+        permission java.io.FilePermission "${user.dir}", "read, write";
+        permission java.net.SocketPermission "127.0.0.1:2090", "connect,resolve";
+        // Permission to communicate with the Maven central, Sonatype Releases, JCenter, Jboss, Google's Maven Repository, Clojars
+        permission java.net.SocketPermission "repo.maven.apache.org/maven2/", "connect,accept,resolve";
+        permission java.net.SocketPermission "oss.sonatype.org/content/repositories/releases/", "connect,accept,resolve";
+        permission java.net.SocketPermission "jcenter.bintray.com", "connect,accept,resolve";
+        permission java.net.SocketPermission "repository.jboss.org/nexus/content/repositories/releases/", "connect,accept,resolve";
+        permission java.net.SocketPermission "maven.google.com", "connect,accept,resolve";
+        permission java.net.SocketPermission "repo.clojars.org", "connect,accept,resolve";
+};

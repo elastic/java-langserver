@@ -108,6 +108,11 @@ public class ElasticJavaLanguageServerPlugin extends Plugin {
 	 */
 	@Override
 	public void start(BundleContext bundleContext) throws Exception {
+		// Check for a security manager
+		SecurityManager sm = System.getSecurityManager();
+		if (sm == null) {
+			logInfo("No SecurityManager installed");
+		}
 		super.start(bundleContext);
 		try {
 			Platform.getBundle(ResourcesPlugin.PI_RESOURCES).start(Bundle.START_TRANSIENT);
