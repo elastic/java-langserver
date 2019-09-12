@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %Bundle-Name
 Bundle-SymbolicName: org.elastic.jdt.ls.core;singleton:=true
-Bundle-Version: 7.3.2.qualifier
+Bundle-Version: 7.3.3.qualifier
 Automatic-Module-Name: org.elatic.jdt.ls.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Vendor: %Bundle-Vendor

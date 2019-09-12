@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.elastic.jdt.ls</groupId>
 		<artifactId>parent</artifactId>
-		<version>7.3.2-SNAPSHOT</version>
+		<version>7.3.3-SNAPSHOT</version>
 	</parent>
 	<artifactId>org.elastic.jdt.ls.tests</artifactId>
 	<name>${base.name} :: Tests</name>
