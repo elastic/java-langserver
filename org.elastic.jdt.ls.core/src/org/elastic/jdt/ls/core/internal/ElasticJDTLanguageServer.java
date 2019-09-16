@@ -7,7 +7,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -15,9 +14,6 @@ import java.util.function.Function;
 
 import org.apache.commons.lang3.reflect.MethodUtils;
 
-import org.jboss.tools.maven.apt.MavenJdtAptPlugin;
-import org.jboss.tools.maven.apt.preferences.AnnotationProcessingMode;
-import org.jboss.tools.maven.apt.preferences.IPreferencesManager;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -75,8 +71,6 @@ public class ElasticJDTLanguageServer extends JDTLanguageServer {
 	@Override
 	public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
 		logInfo("Elastic Java Language Server version: " + ElasticJavaLanguageServerPlugin.getVersion());
-		IPreferencesManager preferencesManager = MavenJdtAptPlugin.getDefault().getPreferencesManager();
-		preferencesManager.setAnnotationProcessorMode(null, AnnotationProcessingMode.disabled);
 		CompletableFuture<InitializeResult> result = super.initialize(params);
 		BuildPathHelper pathHelper = new BuildPathHelper(ResourceUtils.canonicalFilePathFromURI(params.getRootUri()), super.getClientConnection());
 		pathHelper.IncludeAllJavaFiles();
@@ -88,7 +82,7 @@ public class ElasticJDTLanguageServer extends JDTLanguageServer {
 		}
 		return result;
 	}
-	
+
 	@Override
 	public void initialized(InitializedParams params) {
 		logInfo(">> initialized");
@@ -166,19 +160,12 @@ public class ElasticJDTLanguageServer extends JDTLanguageServer {
 	@Override
 	public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
 		setActiveElementInASTProvider(JDTUtils.resolveCompilationUnit(params.getTextDocument().getUri()));
-		logInfo(">> document/documentSymbol");
 		boolean hierarchicalDocumentSymbolSupported = preferenceManager.getClientPreferences().isHierarchicalDocumentSymbolSupported();
 		DocumentSymbolHandler handler = new DocumentSymbolHandler(hierarchicalDocumentSymbolSupported);
 		return computeAsync((monitor) -> {
 			waitForLifecycleJobs(monitor);
-			List<Either<SymbolInformation, DocumentSymbol>> result = (List<Either<SymbolInformation, DocumentSymbol>>) AccessController.doPrivileged(new PrivilegedAction() {
-                public Object run() {
                 	return handler.documentSymbol(params, monitor);
-               }
-			});
-			return result;
 		});
-//		return super.documentSymbol(params);
 	}
 	
 	@Override
@@ -225,14 +212,11 @@ public class ElasticJDTLanguageServer extends JDTLanguageServer {
 	}
 
 	private <R> CompletableFuture<R> computeAsync(Function<IProgressMonitor, R> code) {
-//		ClassLoader c =Thread.currentThread().getContextClassLoader();
 		return CompletableFutures.computeAsync(cc -> {
-//		    Thread.currentThread().getContextClassLoader();
-//			Thread.currentThread().setContextClassLoader(c);
 			return AccessController.doPrivileged(new PrivilegedAction<R>() {
-                public R run() {
-                	return code.apply(toMonitor(cc));
-               }
+				public R run() {
+					return code.apply(toMonitor(cc));
+				}
 			});
 		});
 	}

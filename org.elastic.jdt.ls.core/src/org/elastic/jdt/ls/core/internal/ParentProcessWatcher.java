@@ -73,12 +73,11 @@ public final class ParentProcessWatcher implements Runnable, Function<MessageCon
 		return message -> {
 			lastActivityTime=System.currentTimeMillis();
 			AccessController.doPrivileged(new PrivilegedAction<Object>() {
-                public Object run() {
-                	consumer.consume(message);
-                	return null;
-               }
+				public Object run() {
+					consumer.consume(message);
+					return null;
+				}
 			});
-//			consumer.consume(message);
 		};
 	}
 }

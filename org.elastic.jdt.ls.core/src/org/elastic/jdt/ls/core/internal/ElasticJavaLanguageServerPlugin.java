@@ -1,13 +1,3 @@
-/*******************************************************************************
- * Copyright (c) 2016-2017 Red Hat Inc. and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *     Red Hat Inc. - initial API and implementation
- *******************************************************************************/
 package org.elastic.jdt.ls.core.internal;
 
 import java.io.ByteArrayInputStream;
@@ -24,7 +14,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.concurrent.Executors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.internal.net.ProxySelector;
 import org.eclipse.core.net.proxy.IProxyData;
@@ -108,12 +97,8 @@ public class ElasticJavaLanguageServerPlugin extends Plugin {
 	 */
 	@Override
 	public void start(BundleContext bundleContext) throws Exception {
-		// Check for a security manager
-		SecurityManager sm = System.getSecurityManager();
-		if (sm == null) {
-			logInfo("No SecurityManager installed");
-		}
 		super.start(bundleContext);
+		SecurityPermissionHelper.setSecurityPermissions(bundleContext);
 		try {
 			Platform.getBundle(ResourcesPlugin.PI_RESOURCES).start(Bundle.START_TRANSIENT);
 		} catch (BundleException e) {
