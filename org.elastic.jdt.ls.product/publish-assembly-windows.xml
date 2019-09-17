@@ -16,6 +16,7 @@
         <include>repository/config_win/**</include>
         <include>repository/features/**</include>
         <include>repository/plugins/**</include>
+        <include>all.policy</include>
         <include>jdks/openjdk-*_windows/**</include>
       </includes>
       <excludes>
