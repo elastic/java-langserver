@@ -18,7 +18,7 @@ public final class SecurityPermissionHelper {
 	private static final String CLIENT_PORT = "CLIENT_PORT";
 	private static final String CLIENT_HOST = "CLIENT_HOST";
 	// Extra white host for repository, separated by commas
-	private static final String EXTRA_WHITE_HOST = "EXTRA_WHITE_HOST";
+	private static final String EXTRA_WHITELIST_HOST = "EXTRA_WHITELIST_HOST";
 	
 	// Default repository white list
 	private static final List<String> DEFAULT_HOST_WHITELIST = Arrays.asList(
@@ -103,7 +103,7 @@ public final class SecurityPermissionHelper {
 	}
 	
 	private static String getSocketPermissions() {
-		String extraHosts = Environment.getEnvironment(EXTRA_WHITE_HOST);
+		String extraHosts = Environment.getEnvironment(EXTRA_WHITELIST_HOST);
 		List<String> hostsWhiteList = DEFAULT_HOST_WHITELIST;
 		if (extraHosts != null) {
 			hostsWhiteList.addAll(Arrays.asList(extraHosts.split("\\s*,\\s*")));

@@ -98,7 +98,10 @@ public class ElasticJavaLanguageServerPlugin extends Plugin {
 	@Override
 	public void start(BundleContext bundleContext) throws Exception {
 		super.start(bundleContext);
-		SecurityPermissionHelper.setSecurityPermissions(bundleContext);
+		SecurityManager securityManager = System.getSecurityManager();
+		if (securityManager != null) {
+			SecurityPermissionHelper.setSecurityPermissions(bundleContext);
+		}
 		try {
 			Platform.getBundle(ResourcesPlugin.PI_RESOURCES).start(Bundle.START_TRANSIENT);
 		} catch (BundleException e) {
