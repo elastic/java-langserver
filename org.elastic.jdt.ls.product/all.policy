@@ -1,3 +1,4 @@
+// Delegates security to osgi framework, see https://felix.apache.org/documentation/subprojects/apache-felix-framework-security.html
 grant {
         permission java.security.AllPermission;
 };
