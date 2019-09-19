@@ -1,7 +1,9 @@
 package org.elastic.jdt.ls.core.internal;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,13 +23,14 @@ public final class SecurityPermissionHelper {
 	private static final String EXTRA_WHITELIST_HOST = "EXTRA_WHITELIST_HOST";
 	
 	// Default repository white list
-	private static final List<String> DEFAULT_HOST_WHITELIST = Arrays.asList(
-			"repo.maven.apache.org",
-			"oss.sonatype.org",
-			"repository.jboss.org",
-			"maven.google.com",
-			"repo.clojars.org",
-			"repo.eclipse.org");
+	private static final List<String> DEFAULT_HOST_WHITELIST = Collections.unmodifiableList(Arrays.asList(
+                "repo.maven.apache.org",
+                "oss.sonatype.org",
+                "repository.jboss.org",
+                "maven.google.com",
+                "repo.clojars.org",
+                "repo.eclipse.org"
+        ));
 	
 	// Give other bundles all permissions except Maven and Gradle bundles
 	private static final String CORE_PERM = 
@@ -104,7 +107,7 @@ public final class SecurityPermissionHelper {
 	
 	private static String getSocketPermissions() {
 		String extraHosts = Environment.getEnvironment(EXTRA_WHITELIST_HOST);
-		List<String> hostsWhiteList = DEFAULT_HOST_WHITELIST;
+                List<String> hostsWhiteList = new ArrayList<String>(DEFAULT_HOST_WHITELIST);
 		if (extraHosts != null) {
 			hostsWhiteList.addAll(Arrays.asList(extraHosts.split("\\s*,\\s*")));
 		}
