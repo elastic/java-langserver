@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.ls.core.internal.Environment;
 import org.osgi.framework.BundleContext;
@@ -93,7 +94,7 @@ public final class SecurityPermissionHelper {
                 String minimalPerm = String.format(
                                 MINIMAL_PERM_TEMPLATE,
                                 Environment.get(CLIENT_HOST) + ":" + Environment.get(CLIENT_PORT),
-                                getDataFolder(),
+                                StringEscapeUtils.escapeJava(getDataFolder()),
                                 getSocketPermissions());
                 ConditionalPermissionInfo minimalPermission = conPermAdmin.newConditionalPermissionInfo(minimalPerm);
                 perms.add(minimalPermission);
@@ -111,7 +112,7 @@ public final class SecurityPermissionHelper {
 		if (extraHosts != null) {
 			hostsWhiteList.addAll(Arrays.asList(extraHosts.split("\\s*,\\s*")));
 		}
-		return String.join(" ", hostsWhiteList.stream().map(host -> String.format("( java.net.SocketPermission \"%s\" \"connect,accept,resolve\" )", host)).collect(Collectors.toList()));
+		return String.join(" ", hostsWhiteList.stream().map(host -> String.format("( java.net.SocketPermission \"%s\" \"connect,accept,resolve\" )", StringEscapeUtils.escapeJava(host))).collect(Collectors.toList()));
 	}
 	
 
