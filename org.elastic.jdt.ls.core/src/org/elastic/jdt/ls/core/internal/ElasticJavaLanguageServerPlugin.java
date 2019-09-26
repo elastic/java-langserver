@@ -98,10 +98,6 @@ public class ElasticJavaLanguageServerPlugin extends Plugin {
 	@Override
 	public void start(BundleContext bundleContext) throws Exception {
 		super.start(bundleContext);
-		SecurityManager securityManager = System.getSecurityManager();
-		if (securityManager != null) {
-			SecurityPermissionHelper.setSecurityPermissions(bundleContext);
-		}
 		try {
 			Platform.getBundle(ResourcesPlugin.PI_RESOURCES).start(Bundle.START_TRANSIENT);
 		} catch (BundleException e) {
@@ -126,7 +122,15 @@ public class ElasticJavaLanguageServerPlugin extends Plugin {
 		}
 		contentProviderManager = new ContentProviderManager(preferenceManager);
 		logInfo(getClass() + " is started");
+		configureSecurity(bundleContext);
 		configureProxy();
+	}
+
+	private void configureSecurity(BundleContext bundleContext) {
+		SecurityManager securityManager = System.getSecurityManager();
+		if (securityManager != null) {
+			SecurityPermissionHelper.setSecurityPermissions(bundleContext);
+		}
 	}
 
 	private void configureProxy() {

@@ -112,7 +112,7 @@ public final class SecurityPermissionHelper {
 		List<ConditionalPermissionInfo> perms = update.getConditionalPermissionInfos();
 		
 		// Clear old permissions
-		update.getConditionalPermissionInfos().clear();
+		perms.clear();
 		
 		ConditionalPermissionInfo coreP = conPermAdmin.newConditionalPermissionInfo(CORE_PERM);
 		perms.add(coreP);
@@ -131,6 +131,12 @@ public final class SecurityPermissionHelper {
 		perms.add(minimalPermission);
 	
 		update.commit();
+		ElasticJavaLanguageServerPlugin.logInfo("Succeeded to set security permissions with:\n" +
+				coreP.toString() + "\n" +
+				denyP.toString() + "\n" +
+				nonM2eDenyP.toString() + "\n" +
+				nonGradleDenyP.toString() + "\n" +
+				minimalPermission.toString());
 	}
 	
 	public static void updateGradlePermissions(BundleContext bundleContext) {
@@ -146,6 +152,7 @@ public final class SecurityPermissionHelper {
 		ConditionalPermissionInfo gradleP = conPermAdmin.newConditionalPermissionInfo(gradlePerm);
 		perms.add(gradleP);
 		update.commit();
+		ElasticJavaLanguageServerPlugin.logInfo("Succeeded to update security permissions with:\n" + gradleP.toString());
 	}
 	
 	private static String getJavaPath() {
@@ -158,7 +165,7 @@ public final class SecurityPermissionHelper {
 	}
 	
 	private static String getDataFolder() {
-		return Platform.getLocation().toFile().getParent() + File.pathSeparator + "-";
+		return Platform.getLocation().toFile().getParent() + File.separator + "-";
 	}
 	
 	private static String getSocketPermissions() {
