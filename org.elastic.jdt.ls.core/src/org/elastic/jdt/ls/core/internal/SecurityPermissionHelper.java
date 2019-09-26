@@ -1,6 +1,8 @@
 package org.elastic.jdt.ls.core.internal;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -8,6 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.ls.core.internal.Environment;
 import org.osgi.framework.BundleContext;
@@ -16,6 +19,7 @@ import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
 import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
 
+@SuppressWarnings("restriction")
 public final class SecurityPermissionHelper {
 	
 	private static final String CLIENT_PORT = "CLIENT_PORT";
@@ -42,14 +46,29 @@ public final class SecurityPermissionHelper {
 		   "} \"Eclipse core bundles\"";
 	
 	// Deny all bundles to execute files
-	private static final String DENY_EXEC_PERM = 
- 	       "DENY {" +
- 		   "( java.io.FilePermission \"<<ALL FILES>>\" \"execute\" )" +
- 		   "} \"Deny permission\"";
+	private static final String DENY_PERM_FORALL = 
+		"DENY {" +
+		   "( java.lang.RuntimePermission \"accessClassInPackage.sun\" )" +
+		   "( java.lang.RuntimePermission \"setSecurityManager\" )" +
+		   "( java.security.Permission \"setProperty.package.access\" )" +
+ 		   "} \"Deny permission for all bundles\"";
+	
+	private static final String NON_M2E_DENY_PERM =
+		"DENY {" +
+		   "[ org.osgi.service.condpermadmin.BundleLocationCondition  \"initial@reference:file:plugins/org.eclipse.m2e*\" \"!\" ]" +
+ 		   "( java.lang.reflect.ReflectPermission \"suppressAccessChecks\" )" +
+ 		   "( java.lang.RuntimePermission \"createClassLoader\" )" +
+ 		   "} \"Non-m2e deny permission\"";
+	
+	private static final String NON_GRADLE_DENY_PERM =
+		"DENY {" +
+		   "[ org.osgi.service.condpermadmin.BundleLocationCondition  \"initial@reference:file:plugins/org.eclipse.buildship*\" \"!\" ]" +
+		   "( java.io.FilePermission \"<<ALL FILES>>\" \"execute\" )" +
+ 		   "} \"Non-gradle deny permission\"";
 	
 	// permissions for Maven and Gradle bundles
 	private static final String MINIMAL_PERM_TEMPLATE = 
- 	        "ALLOW {" +
+       		"ALLOW {" +
 			"( org.osgi.framework.AdminPermission \"*\" \"*\" )" + 	
 			"( org.osgi.framework.AdaptPermission \"*\" \"adapt\" )" +
 			"( org.osgi.framework.PackagePermission \"*\" \"exportonly,import\" )" + 
@@ -59,7 +78,7 @@ public final class SecurityPermissionHelper {
 			"( org.eclipse.equinox.log.LogPermission \"*\" \"log\" )" +
 			"( java.net.SocketPermission \"%s\" \"connect,resolve\" )" +
 			"( java.net.SocketPermission \"localhost\" \"resolve\" )" +
-			"( java.net.NetPermission \"getNetworkInformation\" )" +  
+			"( java.net.NetPermission \"getNetworkInformation\" )" + 
 			"( java.lang.reflect.ReflectPermission \"suppressAccessChecks\" )" +
 			"( java.io.FilePermission \"<<ALL FILES>>\" \"read\" )" + 	
 			"( java.io.FilePermission \"%s\" \"write,delete\" )" + 
@@ -67,39 +86,75 @@ public final class SecurityPermissionHelper {
 			"( java.lang.RuntimePermission \"*\" \"*\" )" + 
 			"( java.util.PropertyPermission \"*\" \"read, write\" )" +
 			"( java.net.NetPermission \"getProxySelector\" )" +
-			"%s } \"Normal bundles\"";
+			"%s } \"Minimal permissions\"";
+	
+	// Gradle integration specific permissions
+	public static final String GRADLE_PERM_TEMPLATE = 
+		"ALLOW {" +
+			"( java.lang.management.ManagementPermission \"monitor\" )" +
+			"( java.net.SocketPermission \"localhost:0\" \"listen,resolve\" )" +
+			"( java.net.SocketPermission \"services.gradle.org\" \"resolve,accept,connect\" )" +
+			"%s } \"Buildship permission template\"";
 	
 	private SecurityPermissionHelper() {}
 	
 	public static void setSecurityPermissions(BundleContext bundleContext) {
 		
-                ServiceReference sRef = bundleContext.getServiceReference(ConditionalPermissionAdmin.class.getName());
-                
-                // Get hold of OSGi ConditionalPermissionAdmin service...
-                ConditionalPermissionAdmin conPermAdmin = (ConditionalPermissionAdmin) bundleContext.getService(sRef);
+		ServiceReference<?> sRef = bundleContext.getServiceReference(ConditionalPermissionAdmin.class.getName());
 		
-                // Create new "atomic rules update" object
-                ConditionalPermissionUpdate update = conPermAdmin.newConditionalPermissionUpdate();
+		// Get hold of OSGi ConditionalPermissionAdmin service...
+		ConditionalPermissionAdmin conPermAdmin = (ConditionalPermissionAdmin) bundleContext.getService(sRef);
 
-                // Get list of existing permissions (normally null)
-                List<ConditionalPermissionInfo> perms = update.getConditionalPermissionInfos();
-                
-                // Clear old permissions
-                update.getConditionalPermissionInfos().clear();
-                
-                ConditionalPermissionInfo coreP = conPermAdmin.newConditionalPermissionInfo(CORE_PERM);
-                perms.add(coreP);
-                ConditionalPermissionInfo denyP = conPermAdmin.newConditionalPermissionInfo(DENY_EXEC_PERM);
-                perms.add(denyP);
-                String minimalPerm = String.format(
-                                MINIMAL_PERM_TEMPLATE,
-                                Environment.get(CLIENT_HOST) + ":" + Environment.get(CLIENT_PORT),
-                                StringEscapeUtils.escapeJava(getDataFolder()),
-                                getSocketPermissions());
-                ConditionalPermissionInfo minimalPermission = conPermAdmin.newConditionalPermissionInfo(minimalPerm);
-                perms.add(minimalPermission);
-	       
-                update.commit();
+		// Create new "atomic rules update" object
+		ConditionalPermissionUpdate update = conPermAdmin.newConditionalPermissionUpdate();
+
+		// Get list of existing permissions (normally null)
+		List<ConditionalPermissionInfo> perms = update.getConditionalPermissionInfos();
+		
+		// Clear old permissions
+		update.getConditionalPermissionInfos().clear();
+		
+		ConditionalPermissionInfo coreP = conPermAdmin.newConditionalPermissionInfo(CORE_PERM);
+		perms.add(coreP);
+		ConditionalPermissionInfo denyP = conPermAdmin.newConditionalPermissionInfo(DENY_PERM_FORALL);
+		perms.add(denyP);
+		ConditionalPermissionInfo nonM2eDenyP = conPermAdmin.newConditionalPermissionInfo(NON_M2E_DENY_PERM);
+		perms.add(nonM2eDenyP);
+		ConditionalPermissionInfo nonGradleDenyP = conPermAdmin.newConditionalPermissionInfo(NON_GRADLE_DENY_PERM);
+		perms.add(nonGradleDenyP);
+		String minimalPerm = String.format(
+				MINIMAL_PERM_TEMPLATE,
+				Environment.get(CLIENT_HOST) + ":" + Environment.get(CLIENT_PORT),
+				StringEscapeUtils.escapeJava(getDataFolder()),
+				getSocketPermissions());
+		ConditionalPermissionInfo minimalPermission = conPermAdmin.newConditionalPermissionInfo(minimalPerm);
+		perms.add(minimalPermission);
+	
+		update.commit();
+	}
+	
+	public static void updateGradlePermissions(BundleContext bundleContext) {
+		ServiceReference<?> sRef = bundleContext.getServiceReference(ConditionalPermissionAdmin.class.getName());
+		ConditionalPermissionAdmin conPermAdmin = (ConditionalPermissionAdmin) bundleContext.getService(sRef);
+		ConditionalPermissionUpdate update = conPermAdmin.newConditionalPermissionUpdate();
+		List<ConditionalPermissionInfo> perms = update.getConditionalPermissionInfos();
+		String gradlePerm = String.format(GRADLE_PERM_TEMPLATE, "");;
+		String javaPath = getJavaPath();
+		if (javaPath != null) {
+			gradlePerm = String.format(GRADLE_PERM_TEMPLATE, "( java.io.FilePermission \"" + StringEscapeUtils.escapeJava(javaPath) + "\" \"execute\" )");
+		}
+		ConditionalPermissionInfo gradleP = conPermAdmin.newConditionalPermissionInfo(gradlePerm);
+		perms.add(gradleP);
+		update.commit();
+	}
+	
+	private static String getJavaPath() {
+		Path javaHomePath = Paths.get(System.getProperty("java.home"));
+		Path javaPath = SystemUtils.IS_OS_WINDOWS ? Paths.get(javaHomePath.toString(), "bin", "java.exe") : Paths.get(javaHomePath.toString(), "bin", "java");
+		if (javaPath.toFile().exists()) {
+			return javaPath.toString();
+		}
+		return null;
 	}
 	
 	private static String getDataFolder() {
@@ -108,7 +163,7 @@ public final class SecurityPermissionHelper {
 	
 	private static String getSocketPermissions() {
 		String extraHosts = Environment.getEnvironment(EXTRA_WHITELIST_HOST);
-                List<String> hostsWhiteList = new ArrayList<String>(DEFAULT_HOST_WHITELIST);
+		List<String> hostsWhiteList = new ArrayList<String>(DEFAULT_HOST_WHITELIST);
 		if (extraHosts != null) {
 			hostsWhiteList.addAll(Arrays.asList(extraHosts.split("\\s*,\\s*")));
 		}
