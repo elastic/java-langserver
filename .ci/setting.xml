@@ -1,0 +1,22 @@
+<settings>
+  <servers>
+    <server>
+      <id>central</id>
+      <configuration>
+            <timeout>60000</timeout>
+      </configuration>
+    </server>
+    <server>
+      <id>sonatype-public-repository</id>
+      <configuration>
+            <timeout>60000</timeout>
+      </configuration>
+    </server>
+    <server>
+      <id>cbi-release</id>
+      <configuration>
+            <timeout>60000</timeout>
+      </configuration>
+    </server>
+  </servers>
+</settings>
