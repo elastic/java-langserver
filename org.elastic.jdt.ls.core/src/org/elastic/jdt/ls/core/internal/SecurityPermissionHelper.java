@@ -57,7 +57,8 @@ public final class SecurityPermissionHelper {
 		"DENY {" +
 		   "[ org.osgi.service.condpermadmin.BundleLocationCondition  \"initial@reference:file:plugins/org.eclipse.m2e*\" \"!\" ]" +
  		   "( java.lang.reflect.ReflectPermission \"suppressAccessChecks\" )" +
- 		   "( java.lang.RuntimePermission \"createClassLoader\" )" +
+		   "( java.lang.RuntimePermission \"createClassLoader\" )" +
+		   "( java.io.FilePermission \"<<ALL FILES>>\" \"execute\" )" +
  		   "} \"Non-m2e deny permission\"";
 	
 	private static final String NON_GRADLE_DENY_PERM =
@@ -82,6 +83,7 @@ public final class SecurityPermissionHelper {
 			"( java.lang.reflect.ReflectPermission \"suppressAccessChecks\" )" +
 			"( java.io.FilePermission \"<<ALL FILES>>\" \"read\" )" + 	
 			"( java.io.FilePermission \"%s\" \"write,delete\" )" + 
+			"( java.io.FilePermission \"/usr/libexec/java_home\" \"execute\" )" +
 			"( java.io.SerializablePermission \"enableSubstitution\" )" +
 			"( java.lang.RuntimePermission \"*\" \"*\" )" + 
 			"( java.util.PropertyPermission \"*\" \"read, write\" )" +

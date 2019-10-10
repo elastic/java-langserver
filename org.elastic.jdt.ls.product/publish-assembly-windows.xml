@@ -18,6 +18,7 @@
         <include>repository/plugins/**</include>
         <include>all.policy</include>
         <include>jdks/openjdk-*_windows/**</include>
+        <include>settings/**</include>
       </includes>
       <excludes>
         <exclude>**/*.pack.gz</exclude>
