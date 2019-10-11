@@ -67,7 +67,7 @@ docker run \
                   done
 
                   $CMD
-                  ./mvnw clean deploy -DaltDeploymentRepository=dev::default::file:./repository -B -e -Pserver-distro
+                  ./mvnw -s .ci/setting.xml clean deploy -DaltDeploymentRepository=dev::default::file:./repository -B -e -Pserver-distro
                   /plugin/kibana/node_modules/git-hash-package/index.js
                   jq '.version=\"\\(.version)-linux\"' package.json > package-linux.json
                   jq '.version=\"\\(.version)-darwin\"' package.json > package-darwin.json
