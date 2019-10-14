@@ -66,6 +66,25 @@
 				<version>3.0.1</version>
 				<executions>
 					<execution>
+						<id>copy-policy-file</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}</directory>
+									<filtering>true</filtering>
+									<includes>      <!--Only those files will be included-->
+										<include>all.policy</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
 						<id>copy-config-mac</id>
 						<phase>package</phase>
 						<goals>

@@ -1,6 +1,8 @@
 package org.elastic.jdt.ls.core.internal;
 
 import java.io.IOException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -70,7 +72,12 @@ public final class ParentProcessWatcher implements Runnable, Function<MessageCon
 		//inject our own consumer to refresh the timestamp
 		return message -> {
 			lastActivityTime=System.currentTimeMillis();
-			consumer.consume(message);
+			AccessController.doPrivileged(new PrivilegedAction<Object>() {
+				public Object run() {
+					consumer.consume(message);
+					return null;
+				}
+			});
 		};
 	}
 }

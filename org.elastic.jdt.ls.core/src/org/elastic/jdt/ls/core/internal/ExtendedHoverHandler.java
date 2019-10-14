@@ -42,8 +42,8 @@ public class ExtendedHoverHandler extends HoverHandler {
 	public Hover extendedHover(TextDocumentPositionParams position, IProgressMonitor monitor) {
 		Hover hover = removeLinkInHoverContent(hover(position, monitor));
 		String uri = position.getTextDocument().getUri();
-        ITypeRoot unit = JDTUtils.resolveTypeRoot(uri);
-        // use nodefinder to get the covering node
+		ITypeRoot unit = JDTUtils.resolveTypeRoot(uri);
+		// use nodefinder to get the covering node
 		if (unit != null && !monitor.isCanceled()) {
 			try {
 				String content;

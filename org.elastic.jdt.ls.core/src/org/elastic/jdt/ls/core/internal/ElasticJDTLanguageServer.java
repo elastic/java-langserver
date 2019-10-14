@@ -2,9 +2,14 @@ package org.elastic.jdt.ls.core.internal;
 
 import static org.elastic.jdt.ls.core.internal.ElasticJavaLanguageServerPlugin.logInfo;
 import static org.elastic.jdt.ls.core.internal.ElasticJavaLanguageServerPlugin.logException;
+import static org.elastic.jdt.ls.core.internal.ElasticJavaLanguageServerPlugin.getBundleContext;
 
 import java.lang.reflect.InvocationTargetException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -22,11 +27,13 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.manipulation.CoreASTProvider;
 import org.eclipse.jdt.ls.core.internal.CancellableProgressMonitor;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
+import org.eclipse.jdt.ls.core.internal.JSONUtility;
 import org.eclipse.jdt.ls.core.internal.handlers.InitHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.CompletionHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentLifeCycleHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.DocumentSymbolHandler;
 import org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer;
+import org.eclipse.jdt.ls.core.internal.handlers.MapFlattener;
 import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 import org.eclipse.jdt.ls.core.internal.preferences.Preferences;
@@ -69,6 +76,16 @@ public class ElasticJDTLanguageServer extends JDTLanguageServer {
 	@Override
 	public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
 		logInfo("Elastic Java Language Server version: " + ElasticJavaLanguageServerPlugin.getVersion());
+
+		// if we enable Gradle build system support and security is enabled, we need update Gradle-specific permissions
+		Map<?, ?> initializationOptions = this.getInitializationOptions(params);
+		if (isImportGradleEnabled(initializationOptions)) {
+			SecurityManager securityManager = System.getSecurityManager();
+			if (securityManager != null) {
+				SecurityPermissionHelper.updateGradlePermissions(getBundleContext());
+			}
+		}
+
 		CompletableFuture<InitializeResult> result = super.initialize(params);
 		BuildPathHelper pathHelper = new BuildPathHelper(ResourceUtils.canonicalFilePathFromURI(params.getRootUri()), super.getClientConnection());
 		pathHelper.IncludeAllJavaFiles();
@@ -129,7 +146,6 @@ public class ElasticJDTLanguageServer extends JDTLanguageServer {
 				try {
 					JobHelpers.waitForBuildJobs(60 * 60 * 1000); // 1 hour
 					logInfo(">> build jobs finished");
-					// Dont initialize DiagnosticsHandler here
 				} catch (OperationCanceledException e) {
 					logException(e.getMessage(), e);
 					return Status.CANCEL_STATUS;
@@ -159,7 +175,12 @@ public class ElasticJDTLanguageServer extends JDTLanguageServer {
 	@Override
 	public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
 		setActiveElementInASTProvider(JDTUtils.resolveCompilationUnit(params.getTextDocument().getUri()));
-		return super.documentSymbol(params);
+		boolean hierarchicalDocumentSymbolSupported = preferenceManager.getClientPreferences().isHierarchicalDocumentSymbolSupported();
+		DocumentSymbolHandler handler = new DocumentSymbolHandler(hierarchicalDocumentSymbolSupported);
+		return computeAsync((monitor) -> {
+			waitForLifecycleJobs(monitor);
+                	return handler.documentSymbol(params, monitor);
+		});
 	}
 	
 	@Override
@@ -205,8 +226,27 @@ public class ElasticJDTLanguageServer extends JDTLanguageServer {
 		}, 1, TimeUnit.MINUTES);
 	}
 
+	private Map<?, ?> getInitializationOptions(InitializeParams params) {
+		Map<?, ?> initOptions = JSONUtility.toModel(params.getInitializationOptions(), Map.class);
+		return initOptions == null ? Collections.emptyMap() : initOptions;
+	}
+	
+	private boolean isImportGradleEnabled(Map<?, ?> initOptions) {
+		if (initOptions.get(InitHandler.SETTINGS_KEY) instanceof Map) {
+			Object settings = initOptions.get(InitHandler.SETTINGS_KEY);
+			return MapFlattener.getBoolean((Map<String, Object>) settings, Preferences.IMPORT_GRADLE_ENABLED);
+		}
+		return false;
+	}
+
 	private <R> CompletableFuture<R> computeAsync(Function<IProgressMonitor, R> code) {
-		return CompletableFutures.computeAsync(cc -> code.apply(toMonitor(cc)));
+		return CompletableFutures.computeAsync(cc -> {
+			return AccessController.doPrivileged(new PrivilegedAction<R>() {
+				public R run() {
+					return code.apply(toMonitor(cc));
+				}
+			});
+		});
 	}
 	private IProgressMonitor toMonitor(CancelChecker checker) {
 		return new CancellableProgressMonitor(checker);
