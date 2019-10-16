@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.elastic.jdt.ls</groupId>
 		<artifactId>parent</artifactId>
-		<version>7.5.0-SNAPSHOT</version>
+		<version>7.6.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>org.elastic.jdt.ls.tp</artifactId>
 	<name>${base.name} :: Target Platform</name>
