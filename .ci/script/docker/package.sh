@@ -3,7 +3,7 @@ set -e
 
 if [ $# -eq 0 ]; then
     echo "deploy snapshot package.."
-    KIBANA_VERSION=7.4.1
+    KIBANA_VERSION=7.4.2
     DESTINATION=snapshot/
 elif [ $# -eq 2 ]; then
     echo "deploy release package.."
