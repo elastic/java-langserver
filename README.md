@@ -1,4 +1,4 @@
-[![Build Status](https://code-ci.elastic.co/buildStatus/icon?job=elastic%2Bjava-langserver%2Bmaster)](https://code-ci.elastic.co/job/elastic+java-langserver+master/)
+[![Build Status](https://apm-ci.elastic.co/buildStatus/icon?job=code%2Fcode-java-langserver%2Fmaster)](https://apm-ci.elastic.co/job/code/job/code-java-langserver/job/master/)
 
 # java-langserver
 Extension of https://github.com/eclipse/eclipse.jdt.ls
